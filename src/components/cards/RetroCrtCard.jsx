@@ -1,5 +1,5 @@
 /**
- * RetroCrtCard - 3:4 portrait analog CRT specimen card with credit-card thickness extrusion, physical matte scanline textures, and ray-traced diffuse shadows.
+ * RetroCrtCard - 3:4 portrait analog CRT specimen card with credit-card thickness, physical scanlines, and texture-reactive ray-traced light reflection.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useEffect, useRef } from 'react';
@@ -57,7 +57,15 @@ export default function RetroCrtCard({
     if (rotXQuick.current) rotXQuick.current(rotX);
     if (transXQuick.current) transXQuick.current(transX);
     if (transYQuick.current) transYQuick.current(transY);
-  }, [globalMousePos]);
+
+    const lightOffsetX = lightConfig ? lightConfig.x * 35 : 0;
+    const lightOffsetY = lightConfig ? lightConfig.y * 35 : 0;
+    const sheenX = Math.round(50 - globalMousePos.x * 28 + lightOffsetX);
+    const sheenY = Math.round(50 - globalMousePos.y * 28 + lightOffsetY);
+
+    cardRef.current.style.setProperty('--sheen-x', `${sheenX}%`);
+    cardRef.current.style.setProperty('--sheen-y', `${sheenY}%`);
+  }, [globalMousePos, lightConfig]);
 
   useEffect(() => {
     if (!cardRef.current || !isGlitching) return;
@@ -124,18 +132,23 @@ export default function RetroCrtCard({
           <div className="absolute inset-0 crt-aperture-grille pointer-events-none opacity-45 z-10" />
           <div className="absolute inset-0 crt-matte-phosphor-grain pointer-events-none opacity-35 z-10" />
 
-          <div
-            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-30 mix-blend-soft-light"
-            style={{
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%, rgba(0,0,0,0.3) 100%)'
-            }}
-          />
+          <div className="absolute inset-0 crt-anisotropic-sheen pointer-events-none opacity-65 z-10 transition-opacity duration-300" />
+          <div className="absolute inset-0 crt-texture-reflection pointer-events-none opacity-85 z-10 transition-opacity duration-300" />
 
           {lightConfig && (
             <div
-              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-soft-light opacity-35 transition-all duration-500"
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-70 transition-all duration-500"
               style={{
-                background: `linear-gradient(${lightConfig.angle + 180}deg, rgba(255,245,210,0.3) 0%, transparent 65%)`
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(255, 245, 215, 0.5) 0%, rgba(255, 230, 180, 0.2) 35%, transparent 65%)`
+              }}
+            />
+          )}
+
+          {lightConfig && (
+            <div
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 transition-all duration-500"
+              style={{
+                boxShadow: `inset ${-lightConfig.x * 5}px ${-lightConfig.y * 5}px 14px rgba(255, 248, 225, 0.4)`
               }}
             />
           )}
