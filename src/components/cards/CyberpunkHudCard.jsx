@@ -1,13 +1,14 @@
 /**
- * CyberpunkHudCard - 3:4 portrait netrunner specimen card featuring floating 3D geometric HUD telemetry, cursor parallax, and glitch micro-tremors.
- * Communicates with: src/App.jsx (receives globalMousePos and isGlitching state).
+ * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card featuring directional polarized glass flare, ray-traced shadows, and vector telemetry.
+ * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 export default function CyberpunkHudCard({
   globalMousePos = { x: 0, y: 0 },
-  isGlitching = false
+  isGlitching = false,
+  lightConfig = null
 }) {
   const cardRef = useRef(null);
   const rotXQuick = useRef(null);
@@ -16,6 +17,11 @@ export default function CyberpunkHudCard({
   const transYQuick = useRef(null);
 
   const [eqHeights, setEqHeights] = useState([14, 28, 10, 22, 36, 16, 24, 12, 32, 18]);
+
+  const shadowX = lightConfig ? -lightConfig.x * 32 : 0;
+  const shadowY = lightConfig ? -lightConfig.y * 32 : 24;
+  const shadowBlur = lightConfig ? 55 : 45;
+  const shadowOpacity = lightConfig ? 0.6 : 0.45;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -92,20 +98,32 @@ export default function CyberpunkHudCard({
     >
       <div
         ref={cardRef}
-        style={{ transformStyle: 'preserve-3d' }}
-        className="relative w-full h-full rounded-[2rem] overflow-visible neutral-3d-shadow transition-shadow duration-300"
+        style={{
+          transformStyle: 'preserve-3d',
+          boxShadow: `${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity})`
+        }}
+        className="relative w-full h-full rounded-[2rem] overflow-visible transition-shadow duration-500"
       >
         <div
           style={{ transform: 'translateZ(0px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl"
+          className="relative w-full h-full rounded-[2rem] overflow-hidden"
         >
           <img
-            src="./assets/images/cyberpunk_seoul.png"
+            src="./assets/images/jet_hud_cockpit.png"
             alt=""
             className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter saturate-[1.12]"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/35 pointer-events-none rounded-[2rem]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none rounded-[2rem]" />
+
+          {lightConfig && (
+            <div
+              className="absolute inset-0 rounded-[2rem] pointer-events-none mix-blend-screen opacity-40 transition-all duration-500"
+              style={{
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(0, 246, 255, 0.45) 0%, rgba(57, 255, 20, 0.15) 35%, transparent 70%)`
+              }}
+            />
+          )}
         </div>
 
         <div
