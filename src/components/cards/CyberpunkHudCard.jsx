@@ -1,5 +1,5 @@
 /**
- * CyberpunkHudCard - Full-bleed netrunner card with bleed-out ASCII Terminal Matrix breakdown, RGB channel datamosh drift, floating vector reticles, and responsive 3D tracking.
+ * CyberpunkHudCard - 3:4 portrait netrunner card featuring massive gradient-falloff bleed-out, ASCII Terminal Matrix breakdown, RGB channel datamosh drift, and hyper-random autonomous looping.
  * Communicates with: src/App.jsx (receives glitchIntensity, triggerGlitchCount, and globalMousePos).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -21,6 +21,7 @@ export default function CyberpunkHudCard({
   const cardRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+  const loopTimerRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
@@ -38,15 +39,16 @@ export default function CyberpunkHudCard({
     const img = imageRef.current;
     if (!img || !img.complete) return;
 
-    const margin = 36;
-    const cardW = width - margin * 2;
-    const cardH = height - margin * 2;
+    const marginX = 144;
+    const marginY = 144;
+    const cardW = width - marginX * 2;
+    const cardH = height - marginY * 2;
 
-    const sliceCount = Math.floor((8 + Math.random() * 14) * glitchMultiplier);
+    const sliceCount = Math.floor((10 + Math.random() * 16) * glitchMultiplier);
     for (let i = 0; i < sliceCount; i++) {
-      const sy = margin + Math.random() * cardH;
-      const sh = Math.random() * 26 + 6;
-      const shiftR = (Math.random() - 0.5) * 80 * progress * glitchMultiplier;
+      const sy = marginY + Math.random() * cardH;
+      const sh = Math.random() * 34 + 8;
+      const shiftR = (Math.random() - 0.5) * 150 * progress * glitchMultiplier;
       const shiftB = -shiftR * 1.25;
 
       ctx.save();
@@ -55,45 +57,45 @@ export default function CyberpunkHudCard({
       ctx.clip();
 
       ctx.globalCompositeOperation = 'source-over';
-      ctx.drawImage(img, margin, margin, cardW, cardH);
+      ctx.drawImage(img, marginX, marginY, cardW, cardH);
 
       ctx.globalCompositeOperation = 'screen';
-      ctx.fillStyle = 'rgba(255, 0, 127, 0.6)';
-      ctx.drawImage(img, margin + shiftR, margin, cardW, cardH);
+      ctx.fillStyle = 'rgba(255, 0, 127, 0.65)';
+      ctx.drawImage(img, marginX + shiftR, marginY, cardW, cardH);
 
-      ctx.fillStyle = 'rgba(0, 246, 255, 0.6)';
-      ctx.drawImage(img, margin + shiftB, margin, cardW, cardH);
+      ctx.fillStyle = 'rgba(0, 246, 255, 0.65)';
+      ctx.drawImage(img, marginX + shiftB, marginY, cardW, cardH);
 
       if (Math.random() > 0.4) {
         ctx.globalCompositeOperation = 'difference';
-        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.4)' : 'rgba(57, 255, 20, 0.4)';
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.45)' : 'rgba(57, 255, 20, 0.45)';
         ctx.fillRect(0, sy, width, sh);
       }
 
       ctx.restore();
     }
 
-    const asciiBands = Math.floor((3 + Math.random() * 4) * glitchMultiplier);
+    const asciiBands = Math.floor((4 + Math.random() * 5) * glitchMultiplier);
     for (let b = 0; b < asciiBands; b++) {
-      const by = margin + Math.random() * (cardH - 30);
-      const bh = Math.random() * 32 + 14;
-      const bShift = (Math.random() - 0.5) * 60 * progress * glitchMultiplier;
-      const startX = Math.max(0, margin + bShift - 20);
-      const endX = Math.min(width, margin + bShift + cardW + 20);
+      const by = marginY + Math.random() * (cardH - 36);
+      const bh = Math.random() * 40 + 16;
+      const bShift = (Math.random() - 0.5) * 130 * progress * glitchMultiplier;
+      const startX = Math.max(0, marginX + bShift - 70);
+      const endX = Math.min(width, marginX + bShift + cardW + 70);
 
       ctx.save();
       ctx.beginPath();
       ctx.rect(startX, by, endX - startX, bh);
       ctx.clip();
 
-      ctx.fillStyle = 'rgba(10, 15, 25, 0.85)';
+      ctx.fillStyle = 'rgba(10, 15, 25, 0.88)';
       ctx.fillRect(startX, by, endX - startX, bh);
 
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
       const stepX = 10;
-      const stepY = 12;
+      const stepY = 13;
 
-      for (let gy = by + 10; gy < by + bh; gy += stepY) {
+      for (let gy = by + 11; gy < by + bh; gy += stepY) {
         for (let gx = startX; gx < endX; gx += stepX) {
           const glyph = ASCII_GLYPHS[Math.floor(Math.random() * ASCII_GLYPHS.length)];
           const isLime = Math.random() > 0.65;
@@ -106,15 +108,30 @@ export default function CyberpunkHudCard({
       ctx.restore();
     }
 
-    const glitchFibers = Math.floor((12 + Math.random() * 20) * glitchMultiplier);
+    const glitchFibers = Math.floor((16 + Math.random() * 24) * glitchMultiplier);
     for (let f = 0; f < glitchFibers; f++) {
       const fy = Math.random() * height;
-      const fw = Math.random() * 70 + 20;
+      const fw = Math.random() * 120 + 30;
       const fx = Math.random() * (width - fw);
 
       ctx.fillStyle = Math.random() > 0.5 ? '#00f6ff' : '#39ff14';
       ctx.fillRect(fx, fy, fw, Math.random() > 0.7 ? 2 : 1);
     }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-in';
+    const cx = width / 2;
+    const cy = height / 2;
+    const coreRadius = Math.min(cardW, cardH) * 0.45;
+    const maxRadius = Math.max(width, height) * 0.56;
+    const falloffGrad = ctx.createRadialGradient(cx, cy, coreRadius, cx, cy, maxRadius);
+    falloffGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    falloffGrad.addColorStop(0.55, 'rgba(0, 0, 0, 0.88)');
+    falloffGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.28)');
+    falloffGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = falloffGrad;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
   }, [glitchMultiplier]);
 
   const triggerMatrixGlitch = useCallback(() => {
@@ -139,25 +156,25 @@ export default function CyberpunkHudCard({
       }
     });
 
-    const duration = (0.45 + Math.random() * 0.3) * Math.min(1.4, glitchMultiplier);
+    const duration = (2.2 + Math.random() * 1.4) * Math.min(1.4, glitchMultiplier);
 
     glitchTimeline
       .to(progressObj, {
         value: 0,
         duration: duration,
-        ease: 'power3.out'
+        ease: 'sine.inOut'
       }, 0);
   }, [glitchMultiplier, renderCyberpunkGlitch]);
 
   useEffect(() => {
     const img = new Image();
-    img.src = './assets/images/cyberpunk_matrix.jpg';
+    img.src = './assets/images/cyberpunk_seoul.png';
     imageRef.current = img;
 
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = 440;
-      canvas.height = 440;
+      canvas.width = 688;
+      canvas.height = 848;
     }
   }, []);
 
@@ -196,22 +213,40 @@ export default function CyberpunkHudCard({
   }, [globalMousePos]);
 
   useEffect(() => {
+    const scheduleNextGlitch = () => {
+      const r = Math.random();
+      let delay;
+      if (r < 0.28) {
+        delay = 1100 + Math.random() * 1500;
+      } else if (r < 0.72) {
+        delay = 3300 + Math.random() * 3800;
+      } else {
+        delay = 8000 + Math.random() * 5200;
+      }
+
+      loopTimerRef.current = setTimeout(() => {
+        triggerMatrixGlitch();
+        scheduleNextGlitch();
+      }, delay);
+    };
+
+    scheduleNextGlitch();
+
+    return () => {
+      if (loopTimerRef.current) clearTimeout(loopTimerRef.current);
+    };
+  }, [triggerMatrixGlitch]);
+
+  useEffect(() => {
     if (triggerGlitchCount > 0) {
       triggerMatrixGlitch();
     }
   }, [triggerGlitchCount, triggerMatrixGlitch]);
 
-  const handleMouseEnter = () => {
-    if (Math.random() < 0.35 * glitchMultiplier) {
-      triggerMatrixGlitch();
-    }
-  };
-
   return (
     <div
       style={{ perspective: 1200 }}
-      className="relative w-full max-w-[360px] aspect-[1/1] select-none cursor-pointer group"
-      onMouseEnter={handleMouseEnter}
+      className="relative w-full max-w-[400px] aspect-[3/4] select-none cursor-pointer group"
       onClick={triggerMatrixGlitch}
     >
       <div
@@ -224,9 +259,9 @@ export default function CyberpunkHudCard({
           className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl"
         >
           <img
-            src="./assets/images/cyberpunk_matrix.jpg"
+            src="./assets/images/cyberpunk_seoul.png"
             alt=""
-            className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter saturate-[1.15]"
+            className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter saturate-[1.12]"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none rounded-[2rem]" />
@@ -250,12 +285,12 @@ export default function CyberpunkHudCard({
             <div className="w-5 h-5 border-t-2 border-r-2 border-laser-cyan/80" />
           </div>
 
-          <div className="flex items-center justify-center">
-            <div className="relative w-24 h-24 rounded-full border border-laser-cyan/30 flex items-center justify-center">
-              <div className="w-18 h-18 rounded-full border border-dashed border-laser-magenta/40 animate-spin-slow" />
-              <div className="absolute w-2 h-2 rounded-full bg-laser-cyan/90" />
-              <div className="absolute w-28 h-[1px] bg-laser-cyan/20" />
-              <div className="absolute h-28 w-[1px] bg-laser-cyan/20" />
+          <div className="flex items-center justify-center my-auto">
+            <div className="relative w-28 h-28 rounded-full border border-laser-cyan/30 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full border border-dashed border-laser-magenta/40 animate-spin-slow" />
+              <div className="absolute w-2.5 h-2.5 rounded-full bg-laser-cyan/90" />
+              <div className="absolute w-32 h-[1px] bg-laser-cyan/20" />
+              <div className="absolute h-32 w-[1px] bg-laser-cyan/20" />
             </div>
           </div>
 
@@ -279,7 +314,7 @@ export default function CyberpunkHudCard({
         <canvas
           ref={canvasRef}
           style={{ transform: 'translateZ(70px)' }}
-          className="absolute -inset-9 w-[calc(100%+72px)] h-[calc(100%+72px)] pointer-events-none z-30 overflow-visible"
+          className="absolute -inset-36 w-[calc(100%+288px)] h-[calc(100%+288px)] pointer-events-none z-30 overflow-visible"
         />
       </div>
     </div>
