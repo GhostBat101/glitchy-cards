@@ -1,5 +1,5 @@
 /**
- * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card with multi-layer high-gloss canopy glass, specular glare, and ray-traced reflections.
+ * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card with physically ray-traced canopy glass, light-driven specular reflections, and optical clarity.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useState, useEffect, useRef } from 'react';
@@ -70,13 +70,47 @@ export default function CyberpunkHudCard({
     if (transXQuick.current) transXQuick.current(transX);
     if (transYQuick.current) transYQuick.current(transY);
 
-    const lightOffsetX = lightConfig ? lightConfig.x * 30 : 0;
-    const lightOffsetY = lightConfig ? lightConfig.y * 30 : 0;
-    const glossX = Math.round(50 - globalMousePos.x * 35 + lightOffsetX);
-    const glossY = Math.round(50 - globalMousePos.y * 35 + lightOffsetY);
+    if (lightConfig) {
+      const radX = (rotX * Math.PI) / 180;
+      const radY = (rotY * Math.PI) / 180;
+      const nx = -Math.sin(radY);
+      const ny = Math.sin(radX);
+      const nz = Math.cos(radY) * Math.cos(radX);
 
-    cardRef.current.style.setProperty('--gloss-x', `${glossX}%`);
-    cardRef.current.style.setProperty('--gloss-y', `${glossY}%`);
+      const lx = lightConfig.x;
+      const ly = lightConfig.y;
+      const lz = lightConfig.z || 0.85;
+      const lLen = Math.sqrt(lx * lx + ly * ly + lz * lz) || 1;
+      const nlx = lx / lLen;
+      const nly = ly / lLen;
+      const nlz = lz / lLen;
+
+      const vx = 0;
+      const vy = 0;
+      const vz = 1;
+
+      const hx = nlx + vx;
+      const hy = nly + vy;
+      const hz = nlz + vz;
+      const hLen = Math.sqrt(hx * hx + hy * hy + hz * hz) || 1;
+      const nhx = hx / hLen;
+      const nhy = hy / hLen;
+      const nhz = hz / hLen;
+
+      const ndoth = Math.max(0, nx * nhx + ny * nhy + nz * nhz);
+      const specFactor = Math.pow(ndoth, 20);
+
+      const specX = Math.round(50 + nlx * 30 + nx * 40);
+      const specY = Math.round(50 + nly * 30 + ny * 40);
+      const specAngle = Math.round(Math.atan2(nly, nlx) * (180 / Math.PI));
+
+      cardRef.current.style.setProperty('--spec-x', `${specX}%`);
+      cardRef.current.style.setProperty('--spec-y', `${specY}%`);
+      cardRef.current.style.setProperty('--spec-intensity', (specFactor * 0.85).toFixed(3));
+      cardRef.current.style.setProperty('--spec-angle', `${specAngle}deg`);
+    } else {
+      cardRef.current.style.setProperty('--spec-intensity', '0');
+    }
   }, [globalMousePos, lightConfig]);
 
   useEffect(() => {
@@ -134,7 +168,7 @@ export default function CyberpunkHudCard({
 
         <div
           style={{ transform: 'translateZ(4px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_2px_4px_rgba(255,255,255,0.85),_inset_2px_0_3px_rgba(0,246,255,0.6),_inset_0_-2px_4px_rgba(0,0,0,0.7)] border-2 border-white/40"
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_1.5px_3px_rgba(255,255,255,0.4),_inset_0_-1.5px_3px_rgba(0,0,0,0.6)] border border-white/20"
         >
           <img
             src="./assets/images/jet_hud_cockpit.png"
@@ -144,17 +178,17 @@ export default function CyberpunkHudCard({
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/25 pointer-events-none rounded-[2rem]" />
 
-          <div className="absolute inset-0 rounded-[2rem] hud-gloss-canopy pointer-events-none opacity-85 z-10" />
+          <div className="absolute inset-0 rounded-[2rem] hud-glass-clarity pointer-events-none z-10" />
 
-          <div className="absolute inset-0 rounded-[2rem] hud-specular-glare pointer-events-none opacity-80 z-10 transition-all duration-300" />
+          <div className="absolute inset-0 rounded-[2rem] hud-fresnel-glance pointer-events-none z-10" />
 
-          <div className="absolute inset-0 rounded-[2rem] hud-glass-sheen pointer-events-none opacity-60 z-10" />
+          <div className="absolute inset-0 rounded-[2rem] hud-raytraced-specular pointer-events-none z-10" />
 
           {lightConfig && (
             <div
-              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-80 transition-all duration-500"
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-50 transition-all duration-500"
               style={{
-                background: `linear-gradient(${lightConfig.angle}deg, rgba(255, 255, 255, 0.85) 0%, rgba(0, 246, 255, 0.6) 25%, rgba(57, 255, 20, 0.2) 45%, transparent 75%)`
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(255, 255, 255, 0.45) 0%, rgba(0, 246, 255, 0.2) 25%, transparent 65%)`
               }}
             />
           )}
@@ -163,7 +197,7 @@ export default function CyberpunkHudCard({
             <div
               className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 transition-all duration-500"
               style={{
-                boxShadow: `inset ${-lightConfig.x * 6}px ${-lightConfig.y * 6}px 18px rgba(255, 255, 255, 0.75)`
+                boxShadow: `inset ${-lightConfig.x * 4}px ${-lightConfig.y * 4}px 12px rgba(255, 255, 255, 0.4)`
               }}
             />
           )}
@@ -171,9 +205,16 @@ export default function CyberpunkHudCard({
 
         <div
           style={{ transform: 'translateZ(40px)' }}
-          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-white/50 shadow-[inset_0_0_35px_rgba(0,246,255,0.35),_0_0_20px_rgba(0,246,255,0.3)] overflow-hidden"
+          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-cyan-400/30 shadow-[inset_0_0_25px_rgba(0,246,255,0.2),_0_0_15px_rgba(0,246,255,0.15)] overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40 pointer-events-none mix-blend-screen" />
+          {lightConfig && (
+            <div
+              className="absolute inset-0 pointer-events-none mix-blend-screen opacity-40 transition-opacity duration-500"
+              style={{
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(255, 255, 255, 0.3) 0%, transparent 60%)`
+              }}
+            />
+          )}
         </div>
 
         <div
