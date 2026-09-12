@@ -32,7 +32,7 @@ export default function App() {
     >
       <div className="w-full h-2" />
 
-      <main className="w-full flex-1 flex items-center justify-center my-auto py-8">
+      <main className="w-full flex-1 flex items-center justify-center my-auto py-4 md:py-6">
         {activeStyle === 'ai-core' && (
           <AiCoreCdCard
             glitchIntensity={glitchIntensity}
