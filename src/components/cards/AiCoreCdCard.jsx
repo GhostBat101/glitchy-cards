@@ -1,17 +1,17 @@
 /**
- * AiCoreCdCard - Interactive corrupted AI core card with iridescent CD optical diffraction, concentric data tracks, and GSAP slice glitching.
- * Communicates with: src/App.jsx (receives glitchIntensity, isSpinning, and triggerGlitchCount props).
+ * AiCoreCdCard - High-fidelity optical CD artifact card with authentic photorealistic disc imagery, dynamic laser diffraction, and GSAP laser-jump slice displacement.
+ * Communicates with: src/App.jsx (receives glitchIntensity, isSpinning, and triggerGlitchCount).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
-import { Cpu, AlertTriangle, Radio, Activity, Binary } from 'lucide-react';
+import { Disc, Radio, Activity, Binary } from 'lucide-react';
 
 const HEX_CHARS = '0123456789ABCDEF!@#$%&*';
 
 const INTENSITY_FACTORS = {
-  low: 0.4,
+  low: 0.5,
   medium: 1.0,
-  critical: 2.2
+  critical: 2.0
 };
 
 export default function AiCoreCdCard({
@@ -21,21 +21,21 @@ export default function AiCoreCdCard({
 }) {
   const cardRef = useRef(null);
   const discRef = useRef(null);
+  const viewportRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
-  const [isHovered, setIsHovered] = useState(false);
   const [glitchActive, setGlitchActive] = useState(false);
   const [hexDump, setHexDump] = useState('0x7F 0x00 0xA4 0xCD');
-  const [integrityPercent, setIntegrityPercent] = useState(64.2);
+  const [integrityPercent, setIntegrityPercent] = useState(78.4);
 
   const glitchMultiplier = INTENSITY_FACTORS[glitchIntensity] || 1.0;
 
   const triggerLaserError = useCallback(() => {
-    if (!cardRef.current || !discRef.current) return;
+    if (!cardRef.current || !discRef.current || !viewportRef.current) return;
 
     setGlitchActive(true);
-    setIntegrityPercent(prev => Math.max(12.4, +(prev - (Math.random() * 8 + 4)).toFixed(1)));
+    setIntegrityPercent(prev => Math.max(14.2, +(prev - (Math.random() * 6 + 3)).toFixed(1)));
 
     const scrambleInterval = setInterval(() => {
       let scrambled = '0x';
@@ -57,28 +57,26 @@ export default function AiCoreCdCard({
       }
     });
 
-    const intensityScale = glitchMultiplier;
+    const intensity = glitchMultiplier;
 
-    tl.to(cardRef.current, {
-      x: () => (Math.random() - 0.5) * 24 * intensityScale,
-      y: () => (Math.random() - 0.5) * 16 * intensityScale,
-      filter: 'drop-shadow(0 0 35px rgba(255,0,127,0.8)) hue-rotate(90deg)',
+    tl.to(viewportRef.current, {
+      x: () => (Math.random() - 0.5) * 16 * intensity,
+      y: () => (Math.random() - 0.5) * 10 * intensity,
       duration: 0.05,
-      repeat: 7,
+      repeat: 5,
       yoyo: true,
       ease: 'none'
     })
     .to(discRef.current, {
-      rotation: `+=${(Math.random() > 0.5 ? 180 : -180) * intensityScale}`,
-      scale: 1.05,
-      duration: 0.2,
-      ease: 'elastic.out(1, 0.3)'
+      rotation: `+=${(Math.random() > 0.5 ? 90 : -90) * intensity}`,
+      scale: 1.02,
+      duration: 0.25,
+      ease: 'elastic.out(1, 0.4)'
     }, 0)
-    .to(cardRef.current, {
+    .to(viewportRef.current, {
       x: 0,
       y: 0,
-      filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.8)) hue-rotate(0deg)',
-      duration: 0.15,
+      duration: 0.1,
       ease: 'power2.out'
     });
   }, [glitchMultiplier]);
@@ -87,31 +85,31 @@ export default function AiCoreCdCard({
     if (!cardRef.current) return;
 
     xQuickTo.current = gsap.quickTo(cardRef.current, 'rotationY', {
-      duration: 0.6,
-      ease: 'power3.out'
+      duration: 0.5,
+      ease: 'power2.out'
     });
 
     yQuickTo.current = gsap.quickTo(cardRef.current, 'rotationX', {
-      duration: 0.6,
-      ease: 'power3.out'
+      duration: 0.5,
+      ease: 'power2.out'
     });
 
-    const discSpin = gsap.to(discRef.current, {
+    const spinTween = gsap.to(discRef.current, {
       rotation: 360,
-      duration: 20,
+      duration: 16,
       repeat: -1,
       ease: 'none',
       paused: !isSpinning
     });
 
     if (isSpinning) {
-      discSpin.play();
+      spinTween.play();
     } else {
-      discSpin.pause();
+      spinTween.pause();
     }
 
     return () => {
-      discSpin.kill();
+      spinTween.kill();
     };
   }, [isSpinning]);
 
@@ -129,8 +127,8 @@ export default function AiCoreCdCard({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotX = -((y - centerY) / centerY) * 14;
-    const rotY = ((x - centerX) / centerX) * 14;
+    const rotX = -((y - centerY) / centerY) * 10;
+    const rotY = ((x - centerX) / centerX) * 10;
 
     if (xQuickTo.current) xQuickTo.current(rotY);
     if (yQuickTo.current) yQuickTo.current(rotX);
@@ -140,22 +138,20 @@ export default function AiCoreCdCard({
   };
 
   const handleMouseEnter = () => {
-    setIsHovered(true);
-    if (Math.random() < 0.45 * glitchMultiplier) {
+    if (Math.random() < 0.35 * glitchMultiplier) {
       triggerLaserError();
     }
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     if (xQuickTo.current) xQuickTo.current(0);
     if (yQuickTo.current) yQuickTo.current(0);
   };
 
   return (
     <div
-      style={{ perspective: 1200 }}
-      className="relative w-full max-w-[420px] aspect-[1/1.44] select-none cursor-pointer"
+      style={{ perspective: 1000 }}
+      className="relative w-full max-w-[380px] aspect-[1/1.46] select-none cursor-pointer group"
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -163,137 +159,92 @@ export default function AiCoreCdCard({
     >
       <div
         ref={cardRef}
-        style={{
-          transformStyle: 'preserve-3d',
-          '--diffraction-angle': '45deg'
-        }}
-        className="relative w-full h-full rounded-[2.5rem] bg-gradient-to-b from-obsidian-800 via-obsidian-900 to-[#040608] border border-white/15 p-6 flex flex-col justify-between overflow-hidden shadow-2xl shadow-black/80 transition-shadow duration-500 hover:border-laser-cyan/40 hover:shadow-laser-cyan/10"
+        style={{ transformStyle: 'preserve-3d' }}
+        className="relative w-full h-full rounded-[2rem] bg-[#0c0f17] border border-white/10 p-5 flex flex-col justify-between overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-white/20"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-laser-cyan/5 via-transparent to-laser-magenta/5 pointer-events-none" />
-        <div className="absolute inset-0 scanlines-overlay opacity-30 pointer-events-none" />
-
-        {glitchActive && (
-          <>
-            <div className="absolute inset-0 bg-laser-cyan/15 mix-blend-screen pointer-events-none glitch-slice-1 -translate-x-3" />
-            <div className="absolute inset-0 bg-laser-magenta/20 mix-blend-screen pointer-events-none glitch-slice-2 translate-x-4" />
-            <div className="absolute inset-0 bg-laser-lime/10 mix-blend-screen pointer-events-none glitch-slice-3 -translate-x-2" />
-          </>
-        )}
-
-        <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-laser-magenta/10 border border-laser-magenta/30 text-laser-magenta">
-              <Cpu className="w-4 h-4 animate-pulse" />
+        <div className="relative z-20 flex items-center justify-between border-b border-white/5 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-laser-cyan">
+              <Disc className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-mono font-bold tracking-wider text-white">NEURAL_CD // 0x8F</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-laser-magenta animate-ping" />
-              </div>
-              <span className="text-[10px] font-mono text-slate-400">OPTICAL ARCHIVE SYSTEM</span>
+              <h4 className="text-xs font-mono font-bold tracking-wider text-white">OPTICAL ARCHIVE</h4>
+              <p className="text-[10px] font-mono text-slate-400">CORRUPTED AI CORE • 0x8F</p>
             </div>
           </div>
 
-          <div className="flex flex-col items-end">
-            <div className="flex items-center gap-1 text-[10px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-              <AlertTriangle className="w-3 h-3" />
-              <span>CRC_CORRUPTED</span>
-            </div>
-            <span className="text-[9px] font-mono text-slate-500 mt-0.5">TRACK 04 • SECTOR FAIL</span>
+          <div className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+            <span>CRC_FAIL</span>
           </div>
         </div>
 
-        <div className="relative z-10 my-auto flex items-center justify-center py-4">
+        <div
+          ref={viewportRef}
+          className="relative z-10 my-auto w-full aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center p-3"
+        >
           <div
             ref={discRef}
-            className="relative w-64 h-64 rounded-full border border-white/20 shadow-2xl overflow-hidden flex items-center justify-center bg-obsidian-900"
-            style={{
-              boxShadow: isHovered
-                ? '0 0 50px rgba(0, 246, 255, 0.25), inset 0 0 30px rgba(255, 0, 127, 0.2)'
-                : '0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05)'
-            }}
+            className="relative w-full h-full rounded-full overflow-hidden shadow-2xl border border-white/10"
           >
-            <div className="absolute inset-0 cd-grooves opacity-80 pointer-events-none" />
-            <div className="absolute inset-0 cd-diffraction pointer-events-none opacity-70 transition-opacity duration-300" />
+            <img
+              src="./assets/images/ai_core_cd.jpg"
+              alt="Corrupted AI Core Optical CD"
+              className="w-full h-full object-cover rounded-full pointer-events-none"
+            />
 
-            <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay bg-gradient-to-tr from-transparent via-white/80 to-transparent" />
-            <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay bg-gradient-to-br from-transparent via-laser-cyan/80 to-transparent" />
-
-            <div className="absolute inset-8 rounded-full border border-white/10 pointer-events-none" />
-            <div className="absolute inset-16 rounded-full border border-white/10 pointer-events-none" />
-            <div className="absolute inset-24 rounded-full border border-white/15 pointer-events-none" />
-
-            <div className="relative w-24 h-24 rounded-full bg-obsidian-950 border-2 border-white/30 flex items-center justify-center shadow-inner overflow-hidden z-20">
-              <div className="absolute inset-0 bg-gradient-to-tr from-laser-magenta/20 via-laser-cyan/20 to-transparent animate-spin-slow pointer-events-none" />
-
-              <div className="relative z-10 flex flex-col items-center justify-center">
-                <div className="w-10 h-10 rounded-full border-2 border-dashed border-laser-cyan/60 flex items-center justify-center animate-spin-slow">
-                  <div className="w-5 h-5 rounded-full bg-laser-magenta/40 border border-laser-magenta flex items-center justify-center shadow-lg shadow-laser-magenta/50">
-                    <div className="w-2 h-2 rounded-full bg-white animate-ping" />
-                  </div>
-                </div>
-                <span className="text-[8px] font-mono font-bold text-laser-cyan mt-1">CORE.AI</span>
-              </div>
-
-              <div className="absolute inset-0 rounded-full border border-laser-magenta/40 animate-pulse pointer-events-none" />
-            </div>
+            <div className="absolute inset-0 rounded-full cd-diffraction-overlay pointer-events-none opacity-60" />
 
             <div
-              className="absolute w-2 h-2 rounded-full bg-laser-cyan shadow-lg shadow-laser-cyan pointer-events-none"
+              className="absolute inset-0 rounded-full pointer-events-none opacity-30 mix-blend-overlay"
               style={{
-                top: '30%',
-                left: '70%',
-                opacity: isHovered ? 0.9 : 0.4
+                background: 'conic-gradient(from var(--diffraction-angle) at 50% 50%, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%)'
               }}
             />
           </div>
 
-          <div className="absolute top-2 left-2 text-[10px] font-mono text-slate-500 flex items-center gap-1.5 bg-obsidian-950/70 px-2.5 py-1 rounded-full border border-white/5 backdrop-blur-sm">
-            <Radio className="w-3 h-3 text-laser-cyan animate-pulse" />
-            <span>OPTICAL_BURN_LAYER_3</span>
+          {glitchActive && (
+            <>
+              <div className="absolute inset-0 rounded-2xl bg-laser-cyan/25 mix-blend-screen pointer-events-none glitch-slice-a -translate-x-2" />
+              <div className="absolute inset-0 rounded-2xl bg-laser-magenta/30 mix-blend-screen pointer-events-none glitch-slice-b translate-x-3" />
+              <div className="absolute inset-0 rounded-2xl bg-laser-lime/20 mix-blend-screen pointer-events-none glitch-slice-c -translate-x-1.5" />
+            </>
+          )}
+
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-slate-300">
+            <Radio className="w-2.5 h-2.5 text-laser-cyan animate-pulse" />
+            <span>780nm DIODE</span>
           </div>
 
-          <div className="absolute bottom-2 right-2 text-[10px] font-mono text-slate-400 bg-obsidian-950/70 px-2.5 py-1 rounded-full border border-white/5 backdrop-blur-sm">
-            <span>SECTOR: 0xDEADBEEF</span>
+          <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-slate-400">
+            <span>TRACK 04</span>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col gap-3 pt-3 border-t border-white/10">
-          <div className="flex items-center justify-between text-xs font-mono">
+        <div className="relative z-20 flex flex-col gap-2.5 pt-3 border-t border-white/5">
+          <div className="flex items-center justify-between text-[11px] font-mono">
             <span className="text-slate-400 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-laser-magenta" />
+              <Activity className="w-3 h-3 text-laser-cyan" />
               <span>DATA INTEGRITY</span>
             </span>
-            <span className={`font-bold ${integrityPercent < 40 ? 'text-rose-400' : 'text-laser-cyan'}`}>
-              {integrityPercent}%
-            </span>
+            <span className="font-bold text-laser-cyan">{integrityPercent}%</span>
           </div>
 
-          <div className="w-full h-1.5 bg-obsidian-950 rounded-full overflow-hidden border border-white/10 p-0.5">
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${integrityPercent}%`,
-                background: integrityPercent < 40
-                  ? 'linear-gradient(90deg, #ff007f, #f43f5e)'
-                  : 'linear-gradient(90deg, #00f6ff, #a855f7, #ff007f)'
-              }}
+              className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-laser-cyan via-laser-magenta to-laser-lime"
+              style={{ width: `${integrityPercent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between font-mono text-[11px] text-slate-400 bg-obsidian-950/60 p-2 rounded-xl border border-white/5">
-            <div className="flex items-center gap-2">
-              <Binary className="w-3.5 h-3.5 text-laser-lime" />
-              <span className="text-white tracking-widest">{hexDump}</span>
+          <div className="flex items-center justify-between bg-black/30 p-2 rounded-xl border border-white/5 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5">
+              <Binary className="w-3 h-3 text-laser-lime" />
+              <span className="text-slate-200 tracking-wider">{hexDump}</span>
             </div>
-            <span className="text-[9px] uppercase tracking-wider text-slate-500">
-              {glitchActive ? 'READ_COLLISION' : 'OPTICAL_SYNCED'}
+            <span className="text-slate-500 uppercase">
+              {glitchActive ? 'TRACK_JUMP' : 'OPTICAL_SYNC'}
             </span>
-          </div>
-
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-1">
-            <span>CLICK OR HOVER TO TRIGGER LASER JUMP</span>
-            <span className="text-laser-cyan/70">780nm DIODE</span>
           </div>
         </div>
       </div>
