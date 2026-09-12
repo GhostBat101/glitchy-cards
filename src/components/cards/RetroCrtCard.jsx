@@ -1,15 +1,14 @@
 /**
- * RetroCrtCard - Vintage analog CRT broadcast monitor card with authentic photographic imagery, phosphor scanlines, and GSAP V-hold sync loss decay.
+ * RetroCrtCard - Sculptural zero-text analog CRT broadcast card featuring procedural RF static snow, H-sync line tearing, and rolling VHS tracking decay.
  * Communicates with: src/App.jsx (receives glitchIntensity and triggerGlitchCount).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
-import { Tv, Radio, Volume2, AlertCircle } from 'lucide-react';
 
 const INTENSITY_FACTORS = {
-  low: 0.5,
+  low: 0.6,
   medium: 1.0,
-  critical: 2.0
+  critical: 1.8
 };
 
 export default function RetroCrtCard({
@@ -17,67 +16,147 @@ export default function RetroCrtCard({
   triggerGlitchCount = 0
 }) {
   const cardRef = useRef(null);
-  const viewportRef = useRef(null);
-  const rollBarRef = useRef(null);
+  const canvasRef = useRef(null);
+  const imageRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
   const [glitchActive, setGlitchActive] = useState(false);
-  const [signalStatus, setSignalStatus] = useState('NTSC 525 • LOCKED');
-  const [channelFreq, setChannelFreq] = useState('61.25 MHz');
 
   const glitchMultiplier = INTENSITY_FACTORS[glitchIntensity] || 1.0;
 
+  const renderCrtGlitch = useCallback((ctx, width, height, progress, rollY) => {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, width, height);
+
+    const img = imageRef.current;
+    if (!img || !img.complete) return;
+
+    if (progress > 0) {
+      const tearCount = Math.floor((15 + Math.random() * 25) * glitchMultiplier);
+      for (let t = 0; t < tearCount; t++) {
+        const sy = Math.random() * height;
+        const sh = Math.random() * 6 + 1;
+        const shiftX = (Math.random() - 0.5) * 35 * progress * glitchMultiplier;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, sy, width, sh);
+        ctx.clip();
+        ctx.drawImage(img, shiftX, 0, width, height);
+
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = 'rgba(255, 60, 0, 0.4)';
+        ctx.drawImage(img, shiftX - 6, 0, width, height);
+        ctx.fillStyle = 'rgba(0, 200, 255, 0.4)';
+        ctx.drawImage(img, shiftX + 6, 0, width, height);
+        ctx.restore();
+      }
+
+      const bottomThreshold = height * 0.92;
+      for (let y = bottomThreshold; y < height; y += 2) {
+        const factor = (y - bottomThreshold) / (height - bottomThreshold);
+        const skew = Math.sin(y * 0.4) * 25 * factor * progress * glitchMultiplier;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, y, width, 2);
+        ctx.clip();
+        ctx.drawImage(img, skew, 0, width, height);
+        ctx.restore();
+      }
+
+      const barHeight = Math.floor(25 + Math.random() * 20);
+      const barY = (rollY % height);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, barY, width, barHeight);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillRect(0, barY, width, barHeight);
+
+      const noiseImg = ctx.createImageData(width, barHeight);
+      const data = noiseImg.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const val = Math.random() > 0.4 ? 255 : 0;
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+        data[i + 3] = Math.floor(Math.random() * 200 + 55);
+      }
+      ctx.putImageData(noiseImg, 0, barY);
+      ctx.restore();
+    }
+
+    const grainDensity = progress > 0 ? 0.35 : 0.08;
+    const staticLines = Math.floor(height * grainDensity);
+    for (let s = 0; s < staticLines; s++) {
+      const gy = Math.random() * height;
+      const gw = Math.random() * 40 + 5;
+      const gx = Math.random() * (width - gw);
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)';
+      ctx.fillRect(gx, gy, gw, 1);
+    }
+  }, [glitchMultiplier]);
+
   const triggerCrtGlitch = useCallback(() => {
-    if (!cardRef.current || !viewportRef.current || !rollBarRef.current) return;
+    if (!cardRef.current || !canvasRef.current) return;
 
     setGlitchActive(true);
-    setSignalStatus('V-HOLD LOSS // SYNC ERR');
-    setChannelFreq(`${(Math.random() * 5 + 59).toFixed(2)} MHz`);
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const animState = { progress: 1, rollY: 0 };
+
+    const duration = (0.5 + Math.random() * 0.35) * Math.min(1.4, glitchMultiplier);
 
     const tl = gsap.timeline({
+      onUpdate: () => {
+        renderCrtGlitch(ctx, width, height, animState.progress, animState.rollY);
+      },
       onComplete: () => {
+        if (ctx) ctx.clearRect(0, 0, width, height);
         setGlitchActive(false);
-        setSignalStatus('NTSC 525 • LOCKED');
-        setChannelFreq('61.25 MHz');
       }
     });
 
-    const intensity = glitchMultiplier;
-
-    tl.to(rollBarRef.current, {
-      y: '280px',
-      duration: 0.35,
-      ease: 'none',
-      repeat: 2
-    }, 0)
-    .to(viewportRef.current, {
-      x: () => (Math.random() - 0.5) * 14 * intensity,
-      filter: 'contrast(1.4) brightness(1.2) hue-rotate(20deg)',
-      duration: 0.06,
-      repeat: 6,
-      yoyo: true,
+    tl.to(animState, {
+      rollY: height * 2.5,
+      duration: duration,
       ease: 'none'
     }, 0)
-    .to(viewportRef.current, {
-      x: 0,
-      filter: 'contrast(1) brightness(1) hue-rotate(0deg)',
-      duration: 0.15,
-      ease: 'power2.out'
-    });
-  }, [glitchMultiplier]);
+    .to(animState, {
+      progress: 0,
+      duration: duration,
+      ease: 'power2.inOut'
+    }, 0);
+  }, [glitchMultiplier, renderCrtGlitch]);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = './assets/images/retro_crt_vhs.jpg';
+    imageRef.current = img;
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = 380;
+      canvas.height = 380;
+    }
+  }, []);
 
   useEffect(() => {
     if (!cardRef.current) return;
 
     xQuickTo.current = gsap.quickTo(cardRef.current, 'rotationY', {
-      duration: 0.5,
-      ease: 'power2.out'
+      duration: 0.4,
+      ease: 'power3.out'
     });
 
     yQuickTo.current = gsap.quickTo(cardRef.current, 'rotationX', {
-      duration: 0.5,
-      ease: 'power2.out'
+      duration: 0.4,
+      ease: 'power3.out'
     });
   }, []);
 
@@ -116,7 +195,7 @@ export default function RetroCrtCard({
   return (
     <div
       style={{ perspective: 1000 }}
-      className="relative w-full max-w-[380px] aspect-[1/1.46] select-none cursor-pointer group"
+      className="relative w-full max-w-[380px] aspect-[1/1.32] select-none cursor-pointer group"
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -125,92 +204,29 @@ export default function RetroCrtCard({
       <div
         ref={cardRef}
         style={{ transformStyle: 'preserve-3d' }}
-        className="relative w-full h-full rounded-[2rem] bg-[#0d0d12] border border-amber-500/20 p-5 flex flex-col justify-between overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-amber-500/40"
+        className="relative w-full h-full rounded-[2.25rem] bg-[#0d0d12] border border-amber-500/20 p-5 flex items-center justify-center overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-amber-500/40"
       >
-        <div className="relative z-20 flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Tv className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-mono font-bold tracking-wider text-amber-200">TRINITRON PVM</h4>
-              <p className="text-[10px] font-mono text-slate-400">ANALOG BROADCAST • CH 03</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>60Hz RGB</span>
-          </div>
-        </div>
-
-        <div
-          ref={viewportRef}
-          className="relative z-10 my-auto w-full aspect-square rounded-2xl overflow-hidden bg-black border border-amber-500/20 flex items-center justify-center shadow-inner"
-        >
+        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black border border-amber-500/25 flex items-center justify-center shadow-inner">
           <img
             src="./assets/images/retro_crt_vhs.jpg"
             alt="Retro CRT Sony Trinitron Monitor"
-            className="w-full h-full object-cover rounded-2xl pointer-events-none filter contrast-[1.05]"
+            className="w-full h-full object-cover rounded-2xl pointer-events-none filter contrast-[1.08] saturate-[1.1]"
           />
 
-          <div className="absolute inset-0 crt-aperture-grille pointer-events-none opacity-50" />
-          <div className="absolute inset-0 crt-rgb-triads pointer-events-none opacity-30" />
+          <div className="absolute inset-0 crt-aperture-grille pointer-events-none opacity-50 z-10" />
+          <div className="absolute inset-0 crt-rgb-triads pointer-events-none opacity-30 z-10" />
 
           <div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
+            className="absolute inset-0 rounded-2xl pointer-events-none z-10"
             style={{
-              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.85), inset 0 0 10px rgba(0,0,0,0.9)'
+              boxShadow: 'inset 0 0 50px rgba(0,0,0,0.85), inset 0 0 15px rgba(0,0,0,0.95)'
             }}
           />
 
-          <div
-            ref={rollBarRef}
-            className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent pointer-events-none -translate-y-20"
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full pointer-events-none rounded-2xl z-20"
           />
-
-          {glitchActive && (
-            <>
-              <div className="absolute inset-0 bg-amber-400/20 mix-blend-screen pointer-events-none glitch-slice-a -translate-x-3" />
-              <div className="absolute inset-0 bg-rose-500/25 mix-blend-screen pointer-events-none glitch-slice-b translate-x-4" />
-            </>
-          )}
-
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-amber-300">
-            <Radio className="w-2.5 h-2.5" />
-            <span>VHF BAND</span>
-          </div>
-
-          <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-slate-300">
-            <span>{channelFreq}</span>
-          </div>
-
-          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-[10px] font-mono text-slate-300">
-            <div className="flex items-center gap-1.5 text-amber-300">
-              <Volume2 className="w-3 h-3" />
-              <span>MONO • 100%</span>
-            </div>
-            <span className="text-slate-400">75Ω HIGH-Z</span>
-          </div>
-        </div>
-
-        <div className="relative z-20 flex flex-col gap-2.5 pt-3 border-t border-white/5">
-          <div className="flex items-center justify-between text-[11px] font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <AlertCircle className="w-3 h-3 text-amber-400" />
-              <span>SYNC TIMING</span>
-            </span>
-            <span className={`font-bold ${glitchActive ? 'text-rose-400' : 'text-amber-400'}`}>
-              {signalStatus}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-amber-500/20 text-[10px] font-mono">
-            <span className="text-amber-200 tracking-wider">TRACKING: AUTO-CAL</span>
-            <span className="text-slate-500 uppercase text-[9px]">
-              {glitchActive ? 'HEAD_CLEAN_REQ' : 'ANALOG_STABLE'}
-            </span>
-          </div>
         </div>
       </div>
     </div>
