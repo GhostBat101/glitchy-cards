@@ -1,0 +1,24 @@
+# Agent and Project Rules (Strictly Excluded)
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+.cursorrules
+.cursor/
+.claude/
+.agents/rules/
+
+# Dependencies and Build Outputs
+node_modules/
+dist/
+build/
+.cache/
+
+# Logs and Environment
+*.log
+.env
+.env.local
+.env.*.local
+
+# OS Metadata
+.DS_Store
+Thumbs.db
