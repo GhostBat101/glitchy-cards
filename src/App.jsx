@@ -1,8 +1,9 @@
 /**
  * App - Master presentation container set on neutral #7f7f7f canvas with ray-traced lighting, 3D cursor tracking, and light-reactive glitch bleeding.
- * Communicates with: src/components/DeckControls.jsx, src/components/ScreenGlitchCanvas.jsx, and card components (AiCoreCdCard, CyberpunkHudCard, RetroCrtCard).
+ * Communicates with: src/components/LoadingScreen.jsx, src/components/DeckControls.jsx, src/components/ScreenGlitchCanvas.jsx, and card components.
  */
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import LoadingScreen from './components/LoadingScreen.jsx';
 import DeckControls from './components/DeckControls.jsx';
 import ScreenGlitchCanvas from './components/ScreenGlitchCanvas.jsx';
 import AiCoreCdCard from './components/cards/AiCoreCdCard.jsx';
@@ -14,6 +15,8 @@ const IMAGE_MAP = {
   'cyberpunk-hud': './assets/images/jet_hud_cockpit.png',
   'retro-crt': './assets/images/retro_crt_poltergeist.png'
 };
+
+const PRELOAD_IMAGES = Object.values(IMAGE_MAP);
 
 const LIGHT_CONFIGS = {
   'off': null,
@@ -59,6 +62,12 @@ export default function App() {
     }
   }, []);
 
+  const handleAppLoaded = useCallback(() => {
+    requestAnimationFrame(() => {
+      updateCardRect();
+    });
+  }, [updateCardRect]);
+
   useEffect(() => {
     updateCardRect();
     window.addEventListener('resize', updateCardRect);
@@ -70,6 +79,8 @@ export default function App() {
       onMouseMove={handleGlobalMouseMove}
       className="min-h-screen bg-[#7f7f7f] flex flex-col justify-between items-center p-4 md:p-8 relative overflow-hidden select-none"
     >
+      <LoadingScreen images={PRELOAD_IMAGES} onLoaded={handleAppLoaded} />
+
       {activeLight && (
         <div
           className="absolute inset-0 pointer-events-none z-0 transition-all duration-500"
