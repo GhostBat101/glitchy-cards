@@ -1,5 +1,5 @@
 /**
- * RetroCrtCard - Full-bleed analog CRT/VHS card with bleed-out tape head switching skew, rolling tracking noise bar, H-sync line tearing, and responsive 3D tracking.
+ * RetroCrtCard - 3:4 portrait analog CRT/VHS card featuring massive gradient-falloff bleed-out, tape head switching skew, rolling tracking noise bar, and hyper-random autonomous looping.
  * Communicates with: src/App.jsx (receives glitchIntensity, triggerGlitchCount, and globalMousePos).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -19,6 +19,7 @@ export default function RetroCrtCard({
   const cardRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
+  const loopTimerRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
@@ -33,54 +34,55 @@ export default function RetroCrtCard({
     const img = imageRef.current;
     if (!img || !img.complete) return;
 
-    const margin = 36;
-    const cardW = width - margin * 2;
-    const cardH = height - margin * 2;
+    const marginX = 144;
+    const marginY = 144;
+    const cardW = width - marginX * 2;
+    const cardH = height - marginY * 2;
 
     if (progress > 0) {
-      const tearCount = Math.floor((14 + Math.random() * 22) * glitchMultiplier);
+      const tearCount = Math.floor((18 + Math.random() * 26) * glitchMultiplier);
       for (let t = 0; t < tearCount; t++) {
-        const sy = margin + Math.random() * cardH;
-        const sh = Math.random() * 8 + 2;
-        const shiftX = (Math.random() - 0.5) * 65 * progress * glitchMultiplier;
+        const sy = marginY + Math.random() * cardH;
+        const sh = Math.random() * 10 + 2;
+        const shiftX = (Math.random() - 0.5) * 110 * progress * glitchMultiplier;
 
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, sy, width, sh);
         ctx.clip();
-        ctx.drawImage(img, margin + shiftX, margin, cardW, cardH);
+        ctx.drawImage(img, marginX + shiftX, marginY, cardW, cardH);
 
         ctx.globalCompositeOperation = 'screen';
         ctx.fillStyle = 'rgba(255, 60, 0, 0.45)';
-        ctx.drawImage(img, margin + shiftX - 8, margin, cardW, cardH);
+        ctx.drawImage(img, marginX + shiftX - 10, marginY, cardW, cardH);
         ctx.fillStyle = 'rgba(0, 200, 255, 0.45)';
-        ctx.drawImage(img, margin + shiftX + 8, margin, cardW, cardH);
+        ctx.drawImage(img, marginX + shiftX + 10, marginY, cardW, cardH);
         ctx.restore();
       }
 
-      const bottomThreshold = margin + cardH * 0.86;
-      for (let y = bottomThreshold; y < margin + cardH + 20; y += 2) {
-        const factor = (y - bottomThreshold) / (cardH * 0.14 + 20);
-        const skew = Math.sin(y * 0.45) * 55 * factor * progress * glitchMultiplier;
+      const bottomThreshold = marginY + cardH * 0.84;
+      for (let y = bottomThreshold; y < marginY + cardH + 40; y += 2) {
+        const factor = (y - bottomThreshold) / (cardH * 0.16 + 40);
+        const skew = Math.sin(y * 0.38) * 85 * factor * progress * glitchMultiplier;
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, y, width, 2);
         ctx.clip();
-        ctx.drawImage(img, margin + skew, margin, cardW, cardH);
+        ctx.drawImage(img, marginX + skew, marginY, cardW, cardH);
 
         ctx.globalCompositeOperation = 'screen';
-        ctx.drawImage(img, margin + skew - 6, margin, cardW, cardH);
+        ctx.drawImage(img, marginX + skew - 8, marginY, cardW, cardH);
         ctx.restore();
       }
 
-      const barHeight = Math.floor(28 + Math.random() * 20);
-      const barY = (rollY % (cardH + 40)) + margin - 20;
+      const barHeight = Math.floor(36 + Math.random() * 24);
+      const barY = (rollY % (cardH + 60)) + marginY - 30;
       ctx.save();
       ctx.beginPath();
       ctx.rect(0, barY, width, barHeight);
       ctx.clip();
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.fillRect(0, barY, width, barHeight);
 
       const noiseImg = ctx.createImageData(width, barHeight);
@@ -100,11 +102,26 @@ export default function RetroCrtCard({
     const staticLines = Math.floor(height * grainDensity);
     for (let s = 0; s < staticLines; s++) {
       const gy = Math.random() * height;
-      const gw = Math.random() * 50 + 8;
+      const gw = Math.random() * 80 + 10;
       const gx = Math.random() * (width - gw);
       ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)';
       ctx.fillRect(gx, gy, gw, 1);
     }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-in';
+    const cx = width / 2;
+    const cy = height / 2;
+    const coreRadius = Math.min(cardW, cardH) * 0.45;
+    const maxRadius = Math.max(width, height) * 0.56;
+    const falloffGrad = ctx.createRadialGradient(cx, cy, coreRadius, cx, cy, maxRadius);
+    falloffGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    falloffGrad.addColorStop(0.55, 'rgba(0, 0, 0, 0.88)');
+    falloffGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.28)');
+    falloffGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = falloffGrad;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
   }, [glitchMultiplier]);
 
   const triggerCrtGlitch = useCallback(() => {
@@ -119,7 +136,7 @@ export default function RetroCrtCard({
 
     const animState = { progress: 1, rollY: 0 };
 
-    const duration = (0.55 + Math.random() * 0.35) * Math.min(1.4, glitchMultiplier);
+    const duration = (2.5 + Math.random() * 1.5) * Math.min(1.4, glitchMultiplier);
 
     const tl = gsap.timeline({
       onUpdate: () => {
@@ -132,26 +149,26 @@ export default function RetroCrtCard({
     });
 
     tl.to(animState, {
-      rollY: height * 2.5,
+      rollY: height * 2.2,
       duration: duration,
       ease: 'none'
     }, 0)
     .to(animState, {
       progress: 0,
       duration: duration,
-      ease: 'power2.inOut'
+      ease: 'sine.inOut'
     }, 0);
   }, [glitchMultiplier, renderCrtGlitch]);
 
   useEffect(() => {
     const img = new Image();
-    img.src = './assets/images/retro_crt_vhs.jpg';
+    img.src = './assets/images/retro_crt_room.png';
     imageRef.current = img;
 
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = 440;
-      canvas.height = 440;
+      canvas.width = 688;
+      canvas.height = 848;
     }
   }, []);
 
@@ -180,22 +197,40 @@ export default function RetroCrtCard({
   }, [globalMousePos]);
 
   useEffect(() => {
+    const scheduleNextGlitch = () => {
+      const r = Math.random();
+      let delay;
+      if (r < 0.28) {
+        delay = 1200 + Math.random() * 1600;
+      } else if (r < 0.72) {
+        delay = 3500 + Math.random() * 4200;
+      } else {
+        delay = 8500 + Math.random() * 5500;
+      }
+
+      loopTimerRef.current = setTimeout(() => {
+        triggerCrtGlitch();
+        scheduleNextGlitch();
+      }, delay);
+    };
+
+    scheduleNextGlitch();
+
+    return () => {
+      if (loopTimerRef.current) clearTimeout(loopTimerRef.current);
+    };
+  }, [triggerCrtGlitch]);
+
+  useEffect(() => {
     if (triggerGlitchCount > 0) {
       triggerCrtGlitch();
     }
   }, [triggerGlitchCount, triggerCrtGlitch]);
 
-  const handleMouseEnter = () => {
-    if (Math.random() < 0.35 * glitchMultiplier) {
-      triggerCrtGlitch();
-    }
-  };
-
   return (
     <div
       style={{ perspective: 1200 }}
-      className="relative w-full max-w-[360px] aspect-[1/1] select-none cursor-pointer group"
-      onMouseEnter={handleMouseEnter}
+      className="relative w-full max-w-[400px] aspect-[3/4] select-none cursor-pointer group"
       onClick={triggerCrtGlitch}
     >
       <div
@@ -208,7 +243,7 @@ export default function RetroCrtCard({
           className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl"
         >
           <img
-            src="./assets/images/retro_crt_vhs.jpg"
+            src="./assets/images/retro_crt_room.png"
             alt=""
             className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter contrast-[1.08] saturate-[1.1]"
           />
@@ -232,7 +267,7 @@ export default function RetroCrtCard({
         <canvas
           ref={canvasRef}
           style={{ transform: 'translateZ(60px)' }}
-          className="absolute -inset-9 w-[calc(100%+72px)] h-[calc(100%+72px)] pointer-events-none z-30 overflow-visible"
+          className="absolute -inset-36 w-[calc(100%+288px)] h-[calc(100%+288px)] pointer-events-none z-30 overflow-visible"
         />
       </div>
     </div>
