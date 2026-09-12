@@ -1,5 +1,5 @@
 /**
- * Tailwind Configuration - Defines custom palette tokens, terracotta theme accents, and optical animation keyframes.
+ * Tailwind Configuration - Defines custom palette tokens, #7f7f7f neutral canvas shades, and animation keyframes.
  * Communicates with: PostCSS, Tailwind CLI, and src/index.css.
  */
 export default {
@@ -10,12 +10,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        terracotta: '#E96C3B',
-        obsidian: {
-          950: '#07090e',
-          900: '#0c0f17',
-          800: '#131822',
-          700: '#1b2332'
+        canvas: '#7f7f7f',
+        neutralGray: {
+          950: '#111111',
+          900: '#1a1a1a',
+          850: '#222222',
+          800: '#2b2b2b',
+          700: '#3d3d3d',
+          600: '#525252',
+          500: '#7f7f7f',
+          400: '#9e9e9e',
+          300: '#bfbfbf',
+          200: '#d9d9d9',
+          100: '#f0f0f0'
         },
         laser: {
           cyan: '#00f6ff',
