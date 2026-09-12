@@ -1,6 +1,6 @@
 /**
- * ScreenGlitchCanvas - High-energy electronic glitch burst engine with quantized stepped jitters, chromatic RGB separation, and gradient falloff bleed.
- * Communicates with: src/App.jsx (receives activeStyle, cardRect, glitchIntensity, triggerCount, activeImageSrc, and emits onGlitchActive).
+ * ScreenGlitchCanvas - High-energy electronic glitch burst engine with quantized stepped jitters, chromatic RGB separation, and ray-traced edge lighting.
+ * Communicates with: src/App.jsx (receives activeStyle, cardRect, glitchIntensity, triggerCount, activeImageSrc, onGlitchActive, and lightConfig).
  */
 import React, { useEffect, useRef, useCallback } from 'react';
 
@@ -25,7 +25,8 @@ export default function ScreenGlitchCanvas({
   glitchIntensity = 'medium',
   triggerCount = 0,
   activeImageSrc = '',
-  onGlitchActive = null
+  onGlitchActive = null,
+  lightConfig = null
 }) {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -176,6 +177,21 @@ export default function ScreenGlitchCanvas({
       ctx.drawImage(img, cardRect.left + shiftX - split, cardRect.top, cardRect.width, cardRect.height);
       ctx.drawImage(img, cardRect.left + shiftX + split, cardRect.top, cardRect.width, cardRect.height);
 
+      if (lightConfig) {
+        ctx.globalCompositeOperation = 'source-over';
+        if (lightConfig.y < 0) {
+          ctx.fillStyle = `rgba(255, 250, 220, ${0.45 * amp})`;
+          ctx.fillRect(clipX, sy, clipW, 1.5);
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.35 * amp})`;
+          ctx.fillRect(clipX, sy + sh - 1.5, clipW, 1.5);
+        } else {
+          ctx.fillStyle = `rgba(255, 250, 220, ${0.45 * amp})`;
+          ctx.fillRect(clipX, sy + sh - 1.5, clipW, 1.5);
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.35 * amp})`;
+          ctx.fillRect(clipX, sy, clipW, 1.5);
+        }
+      }
+
       ctx.restore();
     }
 
@@ -322,7 +338,7 @@ export default function ScreenGlitchCanvas({
     ctx.fillStyle = falloffGrad;
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
-  }, [cardRect, activeStyle, glitchMultiplier, generateBurstSubState, onGlitchActive]);
+  }, [cardRect, activeStyle, glitchMultiplier, generateBurstSubState, onGlitchActive, lightConfig]);
 
   useEffect(() => {
     let animId;
