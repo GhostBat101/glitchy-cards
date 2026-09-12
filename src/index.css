@@ -1,5 +1,5 @@
 /**
- * Global Stylesheet - Contains Tailwind directives, neutral shadow tokens for #7f7f7f, optical CD diffraction, HUD gloss, and matte CRT scanline textures.
+ * Global Stylesheet - Contains Tailwind directives, neutral shadow tokens for #7f7f7f, optical CD diffraction, HUD gloss, and CRT scanline light-reflection textures.
  * Communicates with: Tailwind CSS build step and all React UI views.
  */
 @tailwind base;
@@ -81,4 +81,36 @@ body {
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
   background-size: 3px 3px;
   mix-blend-mode: overlay;
+}
+
+.crt-anisotropic-sheen {
+  background: radial-gradient(
+    ellipse 75% 45% at var(--sheen-x, 50%) var(--sheen-y, 50%),
+    rgba(255, 248, 225, 0.45) 0%,
+    rgba(255, 230, 180, 0.2) 30%,
+    rgba(255, 255, 255, 0.05) 55%,
+    transparent 75%
+  );
+  mix-blend-mode: screen;
+}
+
+.crt-texture-reflection {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 248, 225, 0.45) 0px,
+    rgba(255, 248, 225, 0.45) 1.5px,
+    transparent 1.5px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(
+    ellipse 70% 55% at var(--sheen-x, 50%) var(--sheen-y, 50%),
+    black 10%,
+    transparent 65%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 55% at var(--sheen-x, 50%) var(--sheen-y, 50%),
+    black 10%,
+    transparent 65%
+  );
 }
