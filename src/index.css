@@ -63,15 +63,3 @@ body {
     rgba(0, 0, 255, 0.04) 3px
   );
 }
-
-.glitch-slice-a {
-  clip-path: polygon(0 18%, 100% 18%, 100% 34%, 0 34%);
-}
-
-.glitch-slice-b {
-  clip-path: polygon(0 52%, 100% 52%, 100% 70%, 0 70%);
-}
-
-.glitch-slice-c {
-  clip-path: polygon(0 80%, 100% 80%, 100% 95%, 0 95%);
-}
