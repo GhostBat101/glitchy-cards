@@ -1,19 +1,25 @@
 /**
- * AiCoreCdCard - 3:4 portrait optical specimen card featuring real-time caustic light diffraction, floating 3D depth, specular reflections, and cursor tracking.
- * Communicates with: src/App.jsx (receives globalMousePos and isGlitching state).
+ * AiCoreCdCard - 3:4 portrait optical specimen card featuring ray-traced anisotropic rainbow diffraction, directional cast shadow, and PBR lighting.
+ * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 export default function AiCoreCdCard({
   globalMousePos = { x: 0, y: 0 },
-  isGlitching = false
+  isGlitching = false,
+  lightConfig = null
 }) {
   const cardRef = useRef(null);
   const rotXQuick = useRef(null);
   const rotYQuick = useRef(null);
   const transXQuick = useRef(null);
   const transYQuick = useRef(null);
+
+  const shadowX = lightConfig ? -lightConfig.x * 32 : 0;
+  const shadowY = lightConfig ? -lightConfig.y * 32 : 24;
+  const shadowBlur = lightConfig ? 55 : 45;
+  const shadowOpacity = lightConfig ? 0.6 : 0.45;
 
   useEffect(() => {
     if (!cardRef.current) return;
@@ -52,11 +58,19 @@ export default function AiCoreCdCard({
     if (transXQuick.current) transXQuick.current(transX);
     if (transYQuick.current) transYQuick.current(transY);
 
-    const angle = Math.atan2(globalMousePos.y, globalMousePos.x) * (180 / Math.PI) + 180;
-    cardRef.current.style.setProperty('--diffraction-angle', `${Math.round(angle)}deg`);
-    cardRef.current.style.setProperty('--glare-x', `${Math.round(50 - globalMousePos.x * 35)}%`);
-    cardRef.current.style.setProperty('--glare-y', `${Math.round(50 - globalMousePos.y * 35)}%`);
-  }, [globalMousePos]);
+    const baseAngle = Math.atan2(globalMousePos.y, globalMousePos.x) * (180 / Math.PI) + 180;
+    const lightAngle = lightConfig ? lightConfig.angle : 0;
+    const combinedAngle = (baseAngle + lightAngle * 0.5) % 360;
+
+    const lightOffsetX = lightConfig ? lightConfig.x * 30 : 0;
+    const lightOffsetY = lightConfig ? lightConfig.y * 30 : 0;
+    const glareX = Math.round(50 - globalMousePos.x * 35 + lightOffsetX);
+    const glareY = Math.round(50 - globalMousePos.y * 35 + lightOffsetY);
+
+    cardRef.current.style.setProperty('--diffraction-angle', `${Math.round(combinedAngle)}deg`);
+    cardRef.current.style.setProperty('--glare-x', `${glareX}%`);
+    cardRef.current.style.setProperty('--glare-y', `${glareY}%`);
+  }, [globalMousePos, lightConfig]);
 
   useEffect(() => {
     if (!cardRef.current || !isGlitching) return;
@@ -83,39 +97,51 @@ export default function AiCoreCdCard({
     >
       <div
         ref={cardRef}
-        style={{ transformStyle: 'preserve-3d' }}
-        className="relative w-full h-full rounded-[2rem] overflow-visible neutral-3d-shadow transition-shadow duration-300"
+        style={{
+          transformStyle: 'preserve-3d',
+          boxShadow: `${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity})`
+        }}
+        className="relative w-full h-full rounded-[2rem] overflow-visible transition-shadow duration-500"
       >
         <div
           style={{ transform: 'translateZ(0px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl"
+          className="relative w-full h-full rounded-[2rem] overflow-hidden"
         >
           <img
-            src="./assets/images/optical_sunburst.png"
+            src="./assets/images/dvd_jurassic_hand.png"
             alt=""
             className="w-full h-full object-cover rounded-[2rem] pointer-events-none"
           />
 
-          <div className="absolute inset-0 rounded-[2rem] cd-diffraction-overlay pointer-events-none opacity-60" />
+          <div className="absolute inset-0 rounded-[2rem] cd-diffraction-overlay pointer-events-none opacity-50" />
+
+          <div
+            className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-45 mix-blend-overlay transition-all duration-300"
+            style={{
+              background: 'radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 60%)'
+            }}
+          />
 
           <div
             className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-40 mix-blend-overlay"
             style={{
-              background: 'radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 65%)'
+              background: 'conic-gradient(from var(--diffraction-angle) at 50% 50%, transparent 35%, rgba(255,255,255,0.95) 50%, transparent 65%)'
             }}
           />
 
-          <div
-            className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-30 mix-blend-overlay"
-            style={{
-              background: 'conic-gradient(from var(--diffraction-angle) at 50% 50%, transparent 40%, rgba(255,255,255,0.95) 50%, transparent 60%)'
-            }}
-          />
+          {lightConfig && (
+            <div
+              className="absolute inset-0 rounded-[2rem] pointer-events-none mix-blend-color-dodge opacity-30 transition-all duration-500"
+              style={{
+                background: `linear-gradient(${lightConfig.angle + 180}deg, rgba(255,245,210,0.7) 0%, transparent 70%)`
+              }}
+            />
+          )}
         </div>
 
         <div
           style={{ transform: 'translateZ(45px)' }}
-          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-white/25 shadow-[inset_0_0_35px_rgba(255,255,255,0.25)]"
+          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-white/30 shadow-[inset_0_0_35px_rgba(255,255,255,0.25)]"
         />
       </div>
     </div>
