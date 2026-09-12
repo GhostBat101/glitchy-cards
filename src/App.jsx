@@ -22,6 +22,7 @@ export default function App() {
   const [isSpinning, setIsSpinning] = useState(true);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [cardRect, setCardRect] = useState(null);
+  const [isGlitching, setIsGlitching] = useState(false);
 
   const mainRef = useRef(null);
 
@@ -61,6 +62,7 @@ export default function App() {
         glitchIntensity={glitchIntensity}
         triggerCount={triggerCount}
         activeImageSrc={IMAGE_MAP[activeStyle]}
+        onGlitchActive={setIsGlitching}
       />
 
       <div className="w-full h-2" />
@@ -69,18 +71,21 @@ export default function App() {
         {activeStyle === 'ai-core' && (
           <AiCoreCdCard
             globalMousePos={mousePos}
+            isGlitching={isGlitching}
           />
         )}
 
         {activeStyle === 'cyberpunk-hud' && (
           <CyberpunkHudCard
             globalMousePos={mousePos}
+            isGlitching={isGlitching}
           />
         )}
 
         {activeStyle === 'retro-crt' && (
           <RetroCrtCard
             globalMousePos={mousePos}
+            isGlitching={isGlitching}
           />
         )}
       </main>
