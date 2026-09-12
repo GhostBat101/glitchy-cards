@@ -1,6 +1,6 @@
 /**
- * AiCoreCdCard - Sculptural zero-text optical disc card featuring procedural C2 byte-rot macroblocks, caustic rainbow diffraction, and GSAP spindle track-jump recoil.
- * Communicates with: src/App.jsx (receives glitchIntensity, isSpinning, and triggerGlitchCount).
+ * AiCoreCdCard - Full-bleed optical disc card with bleed-out Bayer matrix dithering, macroblock tears, caustic diffraction, and responsive 3D tracking.
+ * Communicates with: src/App.jsx (receives glitchIntensity, isSpinning, triggerGlitchCount, and globalMousePos).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
@@ -11,16 +11,23 @@ const INTENSITY_FACTORS = {
   critical: 1.8
 };
 
+const BAYER_4X4 = [
+  [0, 8, 2, 10],
+  [12, 4, 14, 6],
+  [3, 11, 1, 9],
+  [15, 7, 13, 5]
+];
+
 export default function AiCoreCdCard({
   glitchIntensity = 'medium',
   isSpinning = true,
-  triggerGlitchCount = 0
+  triggerGlitchCount = 0,
+  globalMousePos = { x: 0, y: 0 }
 }) {
   const cardRef = useRef(null);
   const discRef = useRef(null);
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
-  const animFrameRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
@@ -28,60 +35,94 @@ export default function AiCoreCdCard({
 
   const glitchMultiplier = INTENSITY_FACTORS[glitchIntensity] || 1.0;
 
-  const renderGlitchFrame = useCallback((ctx, width, height, progress) => {
+  const renderDitherAndMacroblocks = useCallback((ctx, width, height, progress) => {
     if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
 
     if (progress <= 0) return;
 
-    const blockCount = Math.floor((12 + Math.random() * 20) * glitchMultiplier);
-    for (let i = 0; i < blockCount; i++) {
-      const bw = Math.floor(Math.random() * 80 + 16);
-      const bh = Math.floor(Math.random() * 28 + 6);
-      const bx = Math.random() * (width - bw);
-      const by = Math.random() * (height - bh);
-      const shiftX = (Math.random() - 0.5) * 45 * progress * glitchMultiplier;
+    const img = imageRef.current;
+    if (!img || !img.complete) return;
+
+    const margin = 36;
+    const cardW = width - margin * 2;
+    const cardH = height - margin * 2;
+
+    const sliceCount = Math.floor((10 + Math.random() * 16) * glitchMultiplier);
+    for (let i = 0; i < sliceCount; i++) {
+      const sy = margin + Math.random() * cardH;
+      const sh = Math.random() * 28 + 6;
+      const shiftX = (Math.random() - 0.5) * 75 * progress * glitchMultiplier;
 
       ctx.save();
       ctx.beginPath();
-      ctx.rect(bx, by, bw, bh);
+      ctx.rect(0, sy, width, sh);
       ctx.clip();
 
-      if (imageRef.current && imageRef.current.complete) {
-        ctx.drawImage(imageRef.current, shiftX, 0, width, height);
-      }
+      ctx.drawImage(img, margin + shiftX, margin, cardW, cardH);
 
-      ctx.globalCompositeOperation = Math.random() > 0.5 ? 'difference' : 'screen';
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.45)' : 'rgba(255, 0, 127, 0.45)';
-      ctx.fillRect(bx, by, bw, bh);
+      ctx.globalCompositeOperation = Math.random() > 0.4 ? 'difference' : 'screen';
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.6)' : 'rgba(255, 0, 127, 0.6)';
+      ctx.fillRect(0, sy, width, sh);
 
-      if (Math.random() > 0.6) {
-        ctx.fillStyle = '#ffffff';
-        const dots = Math.floor(Math.random() * 8 + 2);
-        for (let d = 0; d < dots; d++) {
-          ctx.fillRect(
-            bx + Math.random() * bw,
-            by + Math.random() * bh,
-            2,
-            2
-          );
+      ctx.restore();
+    }
+
+    const ditherBands = Math.floor((4 + Math.random() * 6) * glitchMultiplier);
+    for (let b = 0; b < ditherBands; b++) {
+      const dy = margin + Math.random() * cardH;
+      const dh = Math.random() * 36 + 12;
+      const dShift = (Math.random() - 0.5) * 50 * progress * glitchMultiplier;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(margin + dShift - 20, dy, cardW + 40, dh);
+      ctx.clip();
+
+      for (let y = dy; y < dy + dh; y += 4) {
+        for (let x = margin + dShift - 20; x < margin + dShift + cardW + 20; x += 4) {
+          const matrixX = Math.floor((x % 16) / 4);
+          const matrixY = Math.floor((y % 16) / 4);
+          const threshold = BAYER_4X4[matrixY][matrixX] * 16;
+          const noise = Math.random() * 255;
+
+          if (noise > threshold) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#00f6ff' : '#ffffff';
+            ctx.fillRect(x, y, 3, 3);
+          }
         }
       }
       ctx.restore();
     }
 
-    const ringCount = Math.floor(Math.random() * 4 + 1);
-    const cx = width / 2;
-    const cy = height / 2;
-    for (let r = 0; r < ringCount; r++) {
-      const radius = (0.2 + Math.random() * 0.45) * width;
+    const causticBeams = Math.floor(Math.random() * 4 + 2);
+    for (let c = 0; c < causticBeams; c++) {
+      const angle = Math.random() * Math.PI * 2;
+      const length = width * 0.65;
+      const cx = width / 2;
+      const cy = height / 2;
+
       ctx.save();
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.6)' : 'rgba(57, 255, 20, 0.5)';
-      ctx.lineWidth = Math.random() * 3 + 1;
-      ctx.setLineDash([Math.random() * 20 + 5, Math.random() * 15 + 5]);
-      ctx.stroke();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(
+        cx + Math.cos(angle - 0.15) * length,
+        cy + Math.sin(angle - 0.15) * length
+      );
+      ctx.lineTo(
+        cx + Math.cos(angle + 0.15) * length,
+        cy + Math.sin(angle + 0.15) * length
+      );
+      ctx.closePath();
+
+      const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, length);
+      grad.addColorStop(0, 'rgba(255, 0, 127, 0.7)');
+      grad.addColorStop(0.5, 'rgba(0, 246, 255, 0.5)');
+      grad.addColorStop(1, 'rgba(57, 255, 20, 0)');
+
+      ctx.fillStyle = grad;
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fill();
       ctx.restore();
     }
   }, [glitchMultiplier]);
@@ -100,7 +141,7 @@ export default function AiCoreCdCard({
 
     const glitchTimeline = gsap.timeline({
       onUpdate: () => {
-        renderGlitchFrame(ctx, width, height, progressObj.value);
+        renderDitherAndMacroblocks(ctx, width, height, progressObj.value);
       },
       onComplete: () => {
         if (ctx) ctx.clearRect(0, 0, width, height);
@@ -108,8 +149,8 @@ export default function AiCoreCdCard({
       }
     });
 
-    const recoilAngle = (Math.random() > 0.5 ? 1 : -1) * (45 + Math.random() * 75) * glitchMultiplier;
-    const duration = (0.45 + Math.random() * 0.35) * Math.min(1.4, glitchMultiplier);
+    const recoilAngle = (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 90) * glitchMultiplier;
+    const duration = (0.5 + Math.random() * 0.35) * Math.min(1.4, glitchMultiplier);
 
     glitchTimeline
       .to(discRef.current, {
@@ -123,11 +164,11 @@ export default function AiCoreCdCard({
         ease: 'power2.inOut'
       }, 0)
       .to(discRef.current, {
-        rotation: `+=${recoilAngle * -0.3}`,
+        rotation: `+=${recoilAngle * -0.25}`,
         duration: duration * 0.6,
-        ease: 'elastic.out(1, 0.4)'
+        ease: 'elastic.out(1, 0.35)'
       }, duration * 0.4);
-  }, [glitchMultiplier, renderGlitchFrame]);
+  }, [glitchMultiplier, renderDitherAndMacroblocks]);
 
   useEffect(() => {
     const img = new Image();
@@ -136,28 +177,37 @@ export default function AiCoreCdCard({
 
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = 380;
-      canvas.height = 380;
+      canvas.width = 440;
+      canvas.height = 440;
     }
-
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    };
   }, []);
 
   useEffect(() => {
     if (!cardRef.current) return;
 
     xQuickTo.current = gsap.quickTo(cardRef.current, 'rotationY', {
-      duration: 0.4,
+      duration: 0.35,
       ease: 'power3.out'
     });
 
     yQuickTo.current = gsap.quickTo(cardRef.current, 'rotationX', {
-      duration: 0.4,
+      duration: 0.35,
       ease: 'power3.out'
     });
   }, []);
+
+  useEffect(() => {
+    if (!cardRef.current) return;
+
+    const rotX = -globalMousePos.y * 18;
+    const rotY = globalMousePos.x * 18;
+
+    if (xQuickTo.current) xQuickTo.current(rotY);
+    if (yQuickTo.current) yQuickTo.current(rotX);
+
+    const angle = Math.atan2(globalMousePos.y, globalMousePos.x) * (180 / Math.PI) + 180;
+    cardRef.current.style.setProperty('--diffraction-angle', `${Math.round(angle)}deg`);
+  }, [globalMousePos]);
 
   useEffect(() => {
     if (!discRef.current) return;
@@ -183,75 +233,55 @@ export default function AiCoreCdCard({
     }
   }, [triggerGlitchCount, triggerLaserError]);
 
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const rotX = -((y - centerY) / centerY) * 10;
-    const rotY = ((x - centerX) / centerX) * 10;
-
-    if (xQuickTo.current) xQuickTo.current(rotY);
-    if (yQuickTo.current) yQuickTo.current(rotX);
-
-    const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 180;
-    cardRef.current.style.setProperty('--diffraction-angle', `${Math.round(angle)}deg`);
-  };
-
   const handleMouseEnter = () => {
-    if (Math.random() < 0.35 * glitchMultiplier) {
+    if (Math.random() < 0.4 * glitchMultiplier) {
       triggerLaserError();
     }
   };
 
-  const handleMouseLeave = () => {
-    if (xQuickTo.current) xQuickTo.current(0);
-    if (yQuickTo.current) yQuickTo.current(0);
-  };
-
   return (
     <div
-      style={{ perspective: 1000 }}
-      className="relative w-full max-w-[380px] aspect-[1/1.32] select-none cursor-pointer group"
-      onMouseMove={handleMouseMove}
+      style={{ perspective: 1200 }}
+      className="relative w-full max-w-[360px] aspect-[1/1] select-none cursor-pointer group"
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onClick={triggerLaserError}
     >
       <div
         ref={cardRef}
         style={{ transformStyle: 'preserve-3d' }}
-        className="relative w-full h-full rounded-[2.25rem] bg-[#0c0f17] border border-white/10 p-5 flex items-center justify-center overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-white/25"
+        className="relative w-full h-full rounded-[2rem] overflow-visible neutral-3d-shadow transition-shadow duration-300"
       >
-        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center p-3 shadow-inner">
+        <div
+          ref={discRef}
+          style={{ transform: 'translateZ(0px)' }}
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl"
+        >
+          <img
+            src="./assets/images/ai_core_cd.jpg"
+            alt=""
+            className="w-full h-full object-cover rounded-[2rem] pointer-events-none"
+          />
+
+          <div className="absolute inset-0 rounded-[2rem] cd-diffraction-overlay pointer-events-none opacity-60" />
+
           <div
-            ref={discRef}
-            className="relative w-full h-full rounded-full overflow-hidden shadow-2xl border border-white/15"
-          >
-            <img
-              src="./assets/images/ai_core_cd.jpg"
-              alt="AI Core Optical CD"
-              className="w-full h-full object-cover rounded-full pointer-events-none"
-            />
-
-            <div className="absolute inset-0 rounded-full cd-diffraction-overlay pointer-events-none opacity-65" />
-
-            <div
-              className="absolute inset-0 rounded-full pointer-events-none opacity-30 mix-blend-overlay"
-              style={{
-                background: 'conic-gradient(from var(--diffraction-angle) at 50% 50%, transparent 40%, rgba(255,255,255,0.9) 50%, transparent 60%)'
-              }}
-            />
-          </div>
-
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-none rounded-2xl z-10"
+            className="absolute inset-0 rounded-[2rem] pointer-events-none opacity-30 mix-blend-overlay"
+            style={{
+              background: 'conic-gradient(from var(--diffraction-angle) at 50% 50%, transparent 40%, rgba(255,255,255,0.95) 50%, transparent 60%)'
+            }}
           />
         </div>
+
+        <div
+          style={{ transform: 'translateZ(40px)' }}
+          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-white/20 shadow-[inset_0_0_30px_rgba(255,255,255,0.2)]"
+        />
+
+        <canvas
+          ref={canvasRef}
+          style={{ transform: 'translateZ(50px)' }}
+          className="absolute -inset-9 w-[calc(100%+72px)] h-[calc(100%+72px)] pointer-events-none z-30 overflow-visible"
+        />
       </div>
     </div>
   );
