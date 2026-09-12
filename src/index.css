@@ -1,5 +1,5 @@
 /**
- * Global Stylesheet - Contains Tailwind directives, optical CD diffraction filters, and glitch animation keyframes.
+ * Global Stylesheet - Contains Tailwind directives, warm shadow tokens for #E96C3B, optical CD diffraction, and CRT/VHS scanline shaders.
  * Communicates with: Tailwind CSS build step and all React UI views.
  */
 @tailwind base;
@@ -8,61 +8,70 @@
 
 :root {
   --diffraction-angle: 0deg;
-  --glitch-offset-x: 0px;
-  --glitch-offset-y: 0px;
 }
 
 body {
   margin: 0;
-  background-color: #07090e;
+  background-color: #E96C3B;
   color: #f1f5f9;
   font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
 }
 
-.cd-grooves {
-  background: repeating-radial-gradient(
-    circle at 50% 50%,
-    rgba(255, 255, 255, 0.03) 0px,
-    rgba(255, 255, 255, 0.03) 1px,
-    transparent 1px,
-    transparent 3px
-  );
+.terracotta-card-shadow {
+  box-shadow: 
+    0 35px 70px -15px rgba(55, 18, 7, 0.45),
+    0 10px 25px -5px rgba(55, 18, 7, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 
-.cd-diffraction {
+.cd-diffraction-overlay {
   background: conic-gradient(
-    from var(--diffraction-angle) at 50% 50%,
-    rgba(255, 0, 128, 0.35) 0deg,
-    rgba(0, 246, 255, 0.35) 45deg,
-    rgba(57, 255, 20, 0.35) 90deg,
-    rgba(255, 183, 3, 0.35) 135deg,
-    rgba(168, 85, 247, 0.35) 180deg,
-    rgba(0, 246, 255, 0.35) 225deg,
-    rgba(255, 0, 128, 0.35) 270deg,
-    rgba(57, 255, 20, 0.35) 315deg,
-    rgba(255, 0, 128, 0.35) 360deg
+    from var(--diffraction-angle, 0deg) at 50% 50%,
+    rgba(255, 0, 127, 0.38) 0deg,
+    rgba(0, 246, 255, 0.38) 45deg,
+    rgba(57, 255, 20, 0.38) 90deg,
+    rgba(255, 183, 3, 0.38) 135deg,
+    rgba(168, 85, 247, 0.38) 180deg,
+    rgba(0, 246, 255, 0.38) 225deg,
+    rgba(255, 0, 127, 0.38) 270deg,
+    rgba(57, 255, 20, 0.38) 315deg,
+    rgba(255, 0, 127, 0.38) 360deg
   );
   mix-blend-mode: color-dodge;
-  filter: blur(1px);
+  filter: blur(0.5px);
 }
 
-.scanlines-overlay {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.4) 50%
+.crt-aperture-grille {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.4) 0px,
+    rgba(0, 0, 0, 0.4) 1px,
+    transparent 1px,
+    transparent 2px
   );
-  background-size: 100% 4px;
 }
 
-.glitch-slice-1 {
-  clip-path: polygon(0 15%, 100% 15%, 100% 32%, 0 32%);
+.crt-rgb-triads {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.04) 0px,
+    rgba(255, 0, 0, 0.04) 1px,
+    rgba(0, 255, 0, 0.04) 1px,
+    rgba(0, 255, 0, 0.04) 2px,
+    rgba(0, 0, 255, 0.04) 2px,
+    rgba(0, 0, 255, 0.04) 3px
+  );
 }
 
-.glitch-slice-2 {
-  clip-path: polygon(0 55%, 100% 55%, 100% 75%, 0 75%);
+.glitch-slice-a {
+  clip-path: polygon(0 18%, 100% 18%, 100% 34%, 0 34%);
 }
 
-.glitch-slice-3 {
-  clip-path: polygon(0 82%, 100% 82%, 100% 98%, 0 98%);
+.glitch-slice-b {
+  clip-path: polygon(0 52%, 100% 52%, 100% 70%, 0 70%);
+}
+
+.glitch-slice-c {
+  clip-path: polygon(0 80%, 100% 80%, 100% 95%, 0 95%);
 }
