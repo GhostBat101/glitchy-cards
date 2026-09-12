@@ -1,5 +1,5 @@
 /**
- * Global Stylesheet - Contains Tailwind directives, warm shadow tokens for #E96C3B, optical CD diffraction, and CRT/VHS scanline shaders.
+ * Global Stylesheet - Contains Tailwind directives, neutral shadow tokens for #7f7f7f, optical CD diffraction, and CRT/VHS shaders.
  * Communicates with: Tailwind CSS build step and all React UI views.
  */
 @tailwind base;
@@ -12,17 +12,17 @@
 
 body {
   margin: 0;
-  background-color: #E96C3B;
+  background-color: #7f7f7f;
   color: #f1f5f9;
   font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
 }
 
-.terracotta-card-shadow {
+.neutral-3d-shadow {
   box-shadow: 
-    0 35px 70px -15px rgba(55, 18, 7, 0.45),
-    0 10px 25px -5px rgba(55, 18, 7, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    0 35px 70px -15px rgba(0, 0, 0, 0.5),
+    0 15px 30px -10px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 .cd-diffraction-overlay {
