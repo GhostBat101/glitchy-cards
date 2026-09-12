@@ -1,17 +1,14 @@
 /**
- * AiCoreCdCard - High-fidelity optical CD artifact card with authentic photorealistic disc imagery, dynamic laser diffraction, and GSAP laser-jump slice displacement.
+ * AiCoreCdCard - Sculptural zero-text optical disc card featuring procedural C2 byte-rot macroblocks, caustic rainbow diffraction, and GSAP spindle track-jump recoil.
  * Communicates with: src/App.jsx (receives glitchIntensity, isSpinning, and triggerGlitchCount).
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
-import { Disc, Radio, Activity, Binary } from 'lucide-react';
-
-const HEX_CHARS = '0123456789ABCDEF!@#$%&*';
 
 const INTENSITY_FACTORS = {
-  low: 0.5,
+  low: 0.6,
   medium: 1.0,
-  critical: 2.0
+  critical: 1.8
 };
 
 export default function AiCoreCdCard({
@@ -21,95 +18,162 @@ export default function AiCoreCdCard({
 }) {
   const cardRef = useRef(null);
   const discRef = useRef(null);
-  const viewportRef = useRef(null);
+  const canvasRef = useRef(null);
+  const imageRef = useRef(null);
+  const animFrameRef = useRef(null);
   const xQuickTo = useRef(null);
   const yQuickTo = useRef(null);
 
   const [glitchActive, setGlitchActive] = useState(false);
-  const [hexDump, setHexDump] = useState('0x7F 0x00 0xA4 0xCD');
-  const [integrityPercent, setIntegrityPercent] = useState(78.4);
 
   const glitchMultiplier = INTENSITY_FACTORS[glitchIntensity] || 1.0;
 
+  const renderGlitchFrame = useCallback((ctx, width, height, progress) => {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, width, height);
+
+    if (progress <= 0) return;
+
+    const blockCount = Math.floor((12 + Math.random() * 20) * glitchMultiplier);
+    for (let i = 0; i < blockCount; i++) {
+      const bw = Math.floor(Math.random() * 80 + 16);
+      const bh = Math.floor(Math.random() * 28 + 6);
+      const bx = Math.random() * (width - bw);
+      const by = Math.random() * (height - bh);
+      const shiftX = (Math.random() - 0.5) * 45 * progress * glitchMultiplier;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bx, by, bw, bh);
+      ctx.clip();
+
+      if (imageRef.current && imageRef.current.complete) {
+        ctx.drawImage(imageRef.current, shiftX, 0, width, height);
+      }
+
+      ctx.globalCompositeOperation = Math.random() > 0.5 ? 'difference' : 'screen';
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.45)' : 'rgba(255, 0, 127, 0.45)';
+      ctx.fillRect(bx, by, bw, bh);
+
+      if (Math.random() > 0.6) {
+        ctx.fillStyle = '#ffffff';
+        const dots = Math.floor(Math.random() * 8 + 2);
+        for (let d = 0; d < dots; d++) {
+          ctx.fillRect(
+            bx + Math.random() * bw,
+            by + Math.random() * bh,
+            2,
+            2
+          );
+        }
+      }
+      ctx.restore();
+    }
+
+    const ringCount = Math.floor(Math.random() * 4 + 1);
+    const cx = width / 2;
+    const cy = height / 2;
+    for (let r = 0; r < ringCount; r++) {
+      const radius = (0.2 + Math.random() * 0.45) * width;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(0, 246, 255, 0.6)' : 'rgba(57, 255, 20, 0.5)';
+      ctx.lineWidth = Math.random() * 3 + 1;
+      ctx.setLineDash([Math.random() * 20 + 5, Math.random() * 15 + 5]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }, [glitchMultiplier]);
+
   const triggerLaserError = useCallback(() => {
-    if (!cardRef.current || !discRef.current || !viewportRef.current) return;
+    if (!cardRef.current || !discRef.current || !canvasRef.current) return;
 
     setGlitchActive(true);
-    setIntegrityPercent(prev => Math.max(14.2, +(prev - (Math.random() * 6 + 3)).toFixed(1)));
 
-    const scrambleInterval = setInterval(() => {
-      let scrambled = '0x';
-      for (let i = 0; i < 4; i++) {
-        scrambled += HEX_CHARS[Math.floor(Math.random() * HEX_CHARS.length)];
-      }
-      scrambled += ' 0x';
-      for (let i = 0; i < 4; i++) {
-        scrambled += HEX_CHARS[Math.floor(Math.random() * HEX_CHARS.length)];
-      }
-      setHexDump(scrambled);
-    }, 60);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
 
-    const tl = gsap.timeline({
+    const progressObj = { value: 1 };
+
+    const glitchTimeline = gsap.timeline({
+      onUpdate: () => {
+        renderGlitchFrame(ctx, width, height, progressObj.value);
+      },
       onComplete: () => {
-        clearInterval(scrambleInterval);
+        if (ctx) ctx.clearRect(0, 0, width, height);
         setGlitchActive(false);
-        setHexDump('0x7F 0x00 0xA4 0xCD');
       }
     });
 
-    const intensity = glitchMultiplier;
+    const recoilAngle = (Math.random() > 0.5 ? 1 : -1) * (45 + Math.random() * 75) * glitchMultiplier;
+    const duration = (0.45 + Math.random() * 0.35) * Math.min(1.4, glitchMultiplier);
 
-    tl.to(viewportRef.current, {
-      x: () => (Math.random() - 0.5) * 16 * intensity,
-      y: () => (Math.random() - 0.5) * 10 * intensity,
-      duration: 0.05,
-      repeat: 5,
-      yoyo: true,
-      ease: 'none'
-    })
-    .to(discRef.current, {
-      rotation: `+=${(Math.random() > 0.5 ? 90 : -90) * intensity}`,
-      scale: 1.02,
-      duration: 0.25,
-      ease: 'elastic.out(1, 0.4)'
-    }, 0)
-    .to(viewportRef.current, {
-      x: 0,
-      y: 0,
-      duration: 0.1,
-      ease: 'power2.out'
-    });
-  }, [glitchMultiplier]);
+    glitchTimeline
+      .to(discRef.current, {
+        rotation: `+=${recoilAngle}`,
+        duration: duration * 0.4,
+        ease: 'power4.out'
+      }, 0)
+      .to(progressObj, {
+        value: 0,
+        duration: duration,
+        ease: 'power2.inOut'
+      }, 0)
+      .to(discRef.current, {
+        rotation: `+=${recoilAngle * -0.3}`,
+        duration: duration * 0.6,
+        ease: 'elastic.out(1, 0.4)'
+      }, duration * 0.4);
+  }, [glitchMultiplier, renderGlitchFrame]);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = './assets/images/ai_core_cd.jpg';
+    imageRef.current = img;
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = 380;
+      canvas.height = 380;
+    }
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!cardRef.current) return;
 
     xQuickTo.current = gsap.quickTo(cardRef.current, 'rotationY', {
-      duration: 0.5,
-      ease: 'power2.out'
+      duration: 0.4,
+      ease: 'power3.out'
     });
 
     yQuickTo.current = gsap.quickTo(cardRef.current, 'rotationX', {
-      duration: 0.5,
-      ease: 'power2.out'
+      duration: 0.4,
+      ease: 'power3.out'
     });
+  }, []);
 
-    const spinTween = gsap.to(discRef.current, {
-      rotation: 360,
-      duration: 16,
-      repeat: -1,
-      ease: 'none',
-      paused: !isSpinning
-    });
+  useEffect(() => {
+    if (!discRef.current) return;
 
+    let spinTween;
     if (isSpinning) {
-      spinTween.play();
-    } else {
-      spinTween.pause();
+      spinTween = gsap.to(discRef.current, {
+        rotation: '+=360',
+        duration: 18,
+        ease: 'none',
+        repeat: -1
+      });
     }
 
     return () => {
-      spinTween.kill();
+      if (spinTween) spinTween.kill();
     };
   }, [isSpinning]);
 
@@ -151,7 +215,7 @@ export default function AiCoreCdCard({
   return (
     <div
       style={{ perspective: 1000 }}
-      className="relative w-full max-w-[380px] aspect-[1/1.46] select-none cursor-pointer group"
+      className="relative w-full max-w-[380px] aspect-[1/1.32] select-none cursor-pointer group"
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -160,40 +224,20 @@ export default function AiCoreCdCard({
       <div
         ref={cardRef}
         style={{ transformStyle: 'preserve-3d' }}
-        className="relative w-full h-full rounded-[2rem] bg-[#0c0f17] border border-white/10 p-5 flex flex-col justify-between overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-white/20"
+        className="relative w-full h-full rounded-[2.25rem] bg-[#0c0f17] border border-white/10 p-5 flex items-center justify-center overflow-hidden terracotta-card-shadow transition-all duration-300 group-hover:border-white/25"
       >
-        <div className="relative z-20 flex items-center justify-between border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-laser-cyan">
-              <Disc className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-mono font-bold tracking-wider text-white">OPTICAL ARCHIVE</h4>
-              <p className="text-[10px] font-mono text-slate-400">CORRUPTED AI CORE • 0x8F</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-            <span>CRC_FAIL</span>
-          </div>
-        </div>
-
-        <div
-          ref={viewportRef}
-          className="relative z-10 my-auto w-full aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center p-3"
-        >
+        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center p-3 shadow-inner">
           <div
             ref={discRef}
-            className="relative w-full h-full rounded-full overflow-hidden shadow-2xl border border-white/10"
+            className="relative w-full h-full rounded-full overflow-hidden shadow-2xl border border-white/15"
           >
             <img
               src="./assets/images/ai_core_cd.jpg"
-              alt="Corrupted AI Core Optical CD"
+              alt="AI Core Optical CD"
               className="w-full h-full object-cover rounded-full pointer-events-none"
             />
 
-            <div className="absolute inset-0 rounded-full cd-diffraction-overlay pointer-events-none opacity-60" />
+            <div className="absolute inset-0 rounded-full cd-diffraction-overlay pointer-events-none opacity-65" />
 
             <div
               className="absolute inset-0 rounded-full pointer-events-none opacity-30 mix-blend-overlay"
@@ -203,49 +247,10 @@ export default function AiCoreCdCard({
             />
           </div>
 
-          {glitchActive && (
-            <>
-              <div className="absolute inset-0 rounded-2xl bg-laser-cyan/25 mix-blend-screen pointer-events-none glitch-slice-a -translate-x-2" />
-              <div className="absolute inset-0 rounded-2xl bg-laser-magenta/30 mix-blend-screen pointer-events-none glitch-slice-b translate-x-3" />
-              <div className="absolute inset-0 rounded-2xl bg-laser-lime/20 mix-blend-screen pointer-events-none glitch-slice-c -translate-x-1.5" />
-            </>
-          )}
-
-          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-slate-300">
-            <Radio className="w-2.5 h-2.5 text-laser-cyan animate-pulse" />
-            <span>780nm DIODE</span>
-          </div>
-
-          <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10 text-[9px] font-mono text-slate-400">
-            <span>TRACK 04</span>
-          </div>
-        </div>
-
-        <div className="relative z-20 flex flex-col gap-2.5 pt-3 border-t border-white/5">
-          <div className="flex items-center justify-between text-[11px] font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <Activity className="w-3 h-3 text-laser-cyan" />
-              <span>DATA INTEGRITY</span>
-            </span>
-            <span className="font-bold text-laser-cyan">{integrityPercent}%</span>
-          </div>
-
-          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-laser-cyan via-laser-magenta to-laser-lime"
-              style={{ width: `${integrityPercent}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between bg-black/30 p-2 rounded-xl border border-white/5 text-[10px] font-mono">
-            <div className="flex items-center gap-1.5">
-              <Binary className="w-3 h-3 text-laser-lime" />
-              <span className="text-slate-200 tracking-wider">{hexDump}</span>
-            </div>
-            <span className="text-slate-500 uppercase">
-              {glitchActive ? 'TRACK_JUMP' : 'OPTICAL_SYNC'}
-            </span>
-          </div>
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full pointer-events-none rounded-2xl z-10"
+          />
         </div>
       </div>
     </div>
