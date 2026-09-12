@@ -1,5 +1,5 @@
 /**
- * App - Root showcase container featuring 3D card presentation stage, telemetry header, and interactive controls dock.
+ * App - Master showcase presentation container set on neutral terracotta (#E96C3B) canvas with 3D card stage and floating controls dock.
  * Communicates with: src/components/DeckControls.jsx and card components (AiCoreCdCard, CyberpunkHudCard, RetroCrtCard).
  */
 import React, { useState, useCallback } from 'react';
@@ -20,42 +20,37 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#06080d] text-slate-100 flex flex-col justify-between p-4 md:p-8 relative overflow-hidden select-none">
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-laser-cyan/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-laser-magenta/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <header className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-4 max-w-6xl mx-auto w-full">
+    <div className="min-h-screen bg-[#E96C3B] text-slate-100 flex flex-col justify-between p-4 md:p-8 relative overflow-hidden select-none">
+      <header className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 max-w-5xl mx-auto w-full pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-laser-magenta to-laser-cyan p-0.5 shadow-lg shadow-laser-cyan/20">
-            <div className="w-full h-full bg-obsidian-900 rounded-[10px] flex items-center justify-center">
-              <Layers className="w-5 h-5 text-laser-cyan" />
-            </div>
+          <div className="w-9 h-9 rounded-xl bg-black/30 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <Layers className="w-4 h-4 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-mono font-bold tracking-wider text-white">GLITCHY CARDS</h1>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-laser-cyan border border-white/10">
-                LABS v1.0
+              <h1 className="text-sm font-mono font-bold tracking-widest text-black">GLITCHY CARDS</h1>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/10 text-black border border-black/20 font-bold">
+                LABS v2.0
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono">EXPERIMENTAL COMPONENT SHOWCASE & DECK</p>
+            <p className="text-[11px] text-black/75 font-mono">HIGH-FIDELITY COMPONENT EXPERIMENTS</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
-          <div className="flex items-center gap-2 bg-obsidian-900/80 px-3 py-1.5 rounded-xl border border-white/5">
-            <span className="w-2 h-2 rounded-full bg-laser-lime animate-ping" />
-            <span className="text-slate-300">CORE 60FPS</span>
+        <div className="flex items-center gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-black/10 text-black font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>60FPS ACCELERATED</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 bg-obsidian-900/80 px-3 py-1.5 rounded-xl border border-white/5">
-            <Activity className="w-3.5 h-3.5 text-laser-magenta" />
-            <span>RENDER: HARDWARE ACCEL</span>
+          <div className="hidden sm:flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-black/10 text-black">
+            <Activity className="w-3.5 h-3.5 text-black" />
+            <span>OPTICAL & ANALOG SHADERS</span>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center my-8 md:my-12">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center my-6 md:my-10">
         <div className="w-full flex items-center justify-center">
           {activeStyle === 'ai-core' && (
             <AiCoreCdCard
@@ -66,16 +61,22 @@ export default function App() {
           )}
 
           {activeStyle === 'cyberpunk-hud' && (
-            <CyberpunkHudCard />
+            <CyberpunkHudCard
+              glitchIntensity={glitchIntensity}
+              triggerGlitchCount={triggerCount}
+            />
           )}
 
           {activeStyle === 'retro-crt' && (
-            <RetroCrtCard />
+            <RetroCrtCard
+              glitchIntensity={glitchIntensity}
+              triggerGlitchCount={triggerCount}
+            />
           )}
         </div>
       </main>
 
-      <footer className="relative z-10 max-w-6xl mx-auto w-full pt-4">
+      <footer className="relative z-10 max-w-5xl mx-auto w-full pt-2">
         <DeckControls
           activeStyle={activeStyle}
           setActiveStyle={setActiveStyle}
