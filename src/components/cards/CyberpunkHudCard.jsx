@@ -1,5 +1,5 @@
 /**
- * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card featuring directional polarized glass flare, ray-traced shadows, and vector telemetry.
+ * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card with credit-card thickness extrusion, high-gloss glass canopy texture, and ray-traced shadows.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useState, useEffect, useRef } from 'react';
@@ -69,7 +69,15 @@ export default function CyberpunkHudCard({
     if (rotXQuick.current) rotXQuick.current(rotX);
     if (transXQuick.current) transXQuick.current(transX);
     if (transYQuick.current) transYQuick.current(transY);
-  }, [globalMousePos]);
+
+    const lightOffsetX = lightConfig ? lightConfig.x * 30 : 0;
+    const lightOffsetY = lightConfig ? lightConfig.y * 30 : 0;
+    const glossX = Math.round(50 - globalMousePos.x * 35 + lightOffsetX);
+    const glossY = Math.round(50 - globalMousePos.y * 35 + lightOffsetY);
+
+    cardRef.current.style.setProperty('--gloss-x', `${glossX}%`);
+    cardRef.current.style.setProperty('--gloss-y', `${glossY}%`);
+  }, [globalMousePos, lightConfig]);
 
   useEffect(() => {
     if (!cardRef.current || !isGlitching) return;
@@ -105,8 +113,28 @@ export default function CyberpunkHudCard({
         className="relative w-full h-full rounded-[2rem] overflow-visible transition-shadow duration-500"
       >
         <div
+          style={{ transform: 'translateZ(-4px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#071318] border border-black/70"
+        />
+
+        <div
+          style={{ transform: 'translateZ(-2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#0b1c24] border border-cyan-950/60"
+        />
+
+        <div
           style={{ transform: 'translateZ(0px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden"
+          className="absolute inset-0 rounded-[2rem] bg-[#0e2530] border border-cyan-800/40"
+        />
+
+        <div
+          style={{ transform: 'translateZ(2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#0a1e28] border border-cyan-600/30"
+        />
+
+        <div
+          style={{ transform: 'translateZ(4px)' }}
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_1px_2px_rgba(0,246,255,0.4),_inset_0_-1px_2px_rgba(0,0,0,0.5)] border border-cyan-400/30"
         >
           <img
             src="./assets/images/jet_hud_cockpit.png"
@@ -116,11 +144,27 @@ export default function CyberpunkHudCard({
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none rounded-[2rem]" />
 
+          <div className="absolute inset-0 rounded-[2rem] hud-gloss-canopy pointer-events-none opacity-65 z-10" />
+
+          <div
+            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-45 mix-blend-screen transition-all duration-300"
+            style={{
+              background: 'radial-gradient(circle at var(--gloss-x, 50%) var(--gloss-y, 50%), rgba(255,255,255,0.85) 0%, rgba(0,246,255,0.2) 35%, transparent 65%)'
+            }}
+          />
+
+          <div
+            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-35 mix-blend-overlay"
+            style={{
+              background: 'linear-gradient(125deg, rgba(255,255,255,0.7) 0%, transparent 40%, rgba(255,255,255,0.25) 55%, transparent 70%)'
+            }}
+          />
+
           {lightConfig && (
             <div
-              className="absolute inset-0 rounded-[2rem] pointer-events-none mix-blend-screen opacity-40 transition-all duration-500"
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-40 transition-all duration-500"
               style={{
-                background: `linear-gradient(${lightConfig.angle}deg, rgba(0, 246, 255, 0.45) 0%, rgba(57, 255, 20, 0.15) 35%, transparent 70%)`
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(0, 246, 255, 0.5) 0%, rgba(57, 255, 20, 0.15) 35%, transparent 70%)`
               }}
             />
           )}
