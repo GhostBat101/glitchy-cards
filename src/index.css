@@ -1,5 +1,5 @@
 /**
- * Global Stylesheet - Contains Tailwind directives, neutral shadow tokens for #7f7f7f, optical CD diffraction, and CRT/VHS shaders.
+ * Global Stylesheet - Contains Tailwind directives, neutral shadow tokens for #7f7f7f, optical CD diffraction, HUD gloss, and matte CRT scanline textures.
  * Communicates with: Tailwind CSS build step and all React UI views.
  */
 @tailwind base;
@@ -42,24 +42,43 @@ body {
   filter: blur(0.5px);
 }
 
-.crt-aperture-grille {
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.4) 0px,
-    rgba(0, 0, 0, 0.4) 1px,
-    transparent 1px,
-    transparent 2px
+.hud-gloss-canopy {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.15) 25%,
+    rgba(0, 246, 255, 0.25) 45%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(0, 246, 255, 0.1) 55%,
+    transparent 75%
   );
+  mix-blend-mode: screen;
 }
 
-.crt-rgb-triads {
+.crt-matte-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.72) 0px,
+    rgba(0, 0, 0, 0.72) 1.5px,
+    rgba(45, 45, 45, 0.2) 1.5px,
+    rgba(45, 45, 45, 0.2) 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.crt-aperture-grille {
   background: repeating-linear-gradient(
     90deg,
-    rgba(255, 0, 0, 0.04) 0px,
-    rgba(255, 0, 0, 0.04) 1px,
-    rgba(0, 255, 0, 0.04) 1px,
-    rgba(0, 255, 0, 0.04) 2px,
-    rgba(0, 0, 255, 0.04) 2px,
-    rgba(0, 0, 255, 0.04) 3px
+    rgba(0, 0, 0, 0.5) 0px,
+    rgba(0, 0, 0, 0.5) 1px,
+    transparent 1px,
+    transparent 3px
   );
+  mix-blend-mode: multiply;
+}
+
+.crt-matte-phosphor-grain {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+  background-size: 3px 3px;
+  mix-blend-mode: overlay;
 }
