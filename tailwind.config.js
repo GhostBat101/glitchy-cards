@@ -1,5 +1,5 @@
 /**
- * Tailwind Configuration - Defines custom glitch palettes, typography, and optical animation keyframes.
+ * Tailwind Configuration - Defines custom palette tokens, terracotta theme accents, and optical animation keyframes.
  * Communicates with: PostCSS, Tailwind CLI, and src/index.css.
  */
 export default {
@@ -10,18 +10,18 @@ export default {
   theme: {
     extend: {
       colors: {
+        terracotta: '#E96C3B',
         obsidian: {
-          900: '#07090e',
-          800: '#0c1017',
-          700: '#141a24',
-          600: '#1d2634'
+          950: '#07090e',
+          900: '#0c0f17',
+          800: '#131822',
+          700: '#1b2332'
         },
         laser: {
           cyan: '#00f6ff',
           magenta: '#ff007f',
           lime: '#39ff14',
-          amber: '#ffb703',
-          violet: '#a855f7'
+          amber: '#ffb703'
         }
       },
       fontFamily: {
@@ -29,15 +29,7 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif']
       },
       animation: {
-        'spin-slow': 'spin 12s linear infinite',
-        'pulse-fast': 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'scanline': 'scanline 8s linear infinite'
-      },
-      keyframes: {
-        scanline: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100%)' }
-        }
+        'spin-slow': 'spin 18s linear infinite'
       }
     }
   },
