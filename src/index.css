@@ -1,0 +1,68 @@
+/**
+ * Global Stylesheet - Contains Tailwind directives, optical CD diffraction filters, and glitch animation keyframes.
+ * Communicates with: Tailwind CSS build step and all React UI views.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --diffraction-angle: 0deg;
+  --glitch-offset-x: 0px;
+  --glitch-offset-y: 0px;
+}
+
+body {
+  margin: 0;
+  background-color: #07090e;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.cd-grooves {
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.cd-diffraction {
+  background: conic-gradient(
+    from var(--diffraction-angle) at 50% 50%,
+    rgba(255, 0, 128, 0.35) 0deg,
+    rgba(0, 246, 255, 0.35) 45deg,
+    rgba(57, 255, 20, 0.35) 90deg,
+    rgba(255, 183, 3, 0.35) 135deg,
+    rgba(168, 85, 247, 0.35) 180deg,
+    rgba(0, 246, 255, 0.35) 225deg,
+    rgba(255, 0, 128, 0.35) 270deg,
+    rgba(57, 255, 20, 0.35) 315deg,
+    rgba(255, 0, 128, 0.35) 360deg
+  );
+  mix-blend-mode: color-dodge;
+  filter: blur(1px);
+}
+
+.scanlines-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.4) 50%
+  );
+  background-size: 100% 4px;
+}
+
+.glitch-slice-1 {
+  clip-path: polygon(0 15%, 100% 15%, 100% 32%, 0 32%);
+}
+
+.glitch-slice-2 {
+  clip-path: polygon(0 55%, 100% 55%, 100% 75%, 0 75%);
+}
+
+.glitch-slice-3 {
+  clip-path: polygon(0 82%, 100% 82%, 100% 98%, 0 98%);
+}
