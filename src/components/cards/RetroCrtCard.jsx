@@ -1,5 +1,5 @@
 /**
- * RetroCrtCard - 3:4 portrait analog CRT specimen card featuring spherical glass bulb glare, directional cast shadow, and sync loss micro-tremors.
+ * RetroCrtCard - 3:4 portrait analog CRT specimen card with credit-card thickness extrusion, physical matte scanline textures, and ray-traced diffuse shadows.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useEffect, useRef } from 'react';
@@ -57,15 +57,7 @@ export default function RetroCrtCard({
     if (rotXQuick.current) rotXQuick.current(rotX);
     if (transXQuick.current) transXQuick.current(transX);
     if (transYQuick.current) transYQuick.current(transY);
-
-    const lightOffsetX = lightConfig ? lightConfig.x * 25 : 0;
-    const lightOffsetY = lightConfig ? lightConfig.y * 25 : 0;
-    const glassX = Math.round(50 - globalMousePos.x * 30 + lightOffsetX);
-    const glassY = Math.round(50 - globalMousePos.y * 30 + lightOffsetY);
-
-    cardRef.current.style.setProperty('--glass-x', `${glassX}%`);
-    cardRef.current.style.setProperty('--glass-y', `${glassY}%`);
-  }, [globalMousePos, lightConfig]);
+  }, [globalMousePos]);
 
   useEffect(() => {
     if (!cardRef.current || !isGlitching) return;
@@ -99,8 +91,28 @@ export default function RetroCrtCard({
         className="relative w-full h-full rounded-[2rem] overflow-visible transition-shadow duration-500"
       >
         <div
+          style={{ transform: 'translateZ(-4px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#100e0b] border border-black/75"
+        />
+
+        <div
+          style={{ transform: 'translateZ(-2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#171410] border border-amber-950/60"
+        />
+
+        <div
           style={{ transform: 'translateZ(0px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden"
+          className="absolute inset-0 rounded-[2rem] bg-[#201c17] border border-amber-900/40"
+        />
+
+        <div
+          style={{ transform: 'translateZ(2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#1a1612] border border-amber-700/30"
+        />
+
+        <div
+          style={{ transform: 'translateZ(4px)' }}
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_1px_2px_rgba(255,183,3,0.3),_inset_0_-1px_2px_rgba(0,0,0,0.6)] border border-amber-500/25"
         >
           <img
             src="./assets/images/retro_crt_poltergeist.png"
@@ -108,21 +120,22 @@ export default function RetroCrtCard({
             className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter contrast-[1.08] saturate-[1.1]"
           />
 
+          <div className="absolute inset-0 crt-matte-scanlines pointer-events-none opacity-80 z-10" />
           <div className="absolute inset-0 crt-aperture-grille pointer-events-none opacity-45 z-10" />
-          <div className="absolute inset-0 crt-rgb-triads pointer-events-none opacity-25 z-10" />
+          <div className="absolute inset-0 crt-matte-phosphor-grain pointer-events-none opacity-35 z-10" />
 
           <div
-            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-40 mix-blend-screen transition-all duration-300"
+            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-30 mix-blend-soft-light"
             style={{
-              background: 'radial-gradient(circle at var(--glass-x, 50%) var(--glass-y, 50%), rgba(255,248,225,0.75) 0%, transparent 60%)'
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%, rgba(0,0,0,0.3) 100%)'
             }}
           />
 
           {lightConfig && (
             <div
-              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-overlay opacity-35 transition-all duration-500"
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-soft-light opacity-35 transition-all duration-500"
               style={{
-                background: `linear-gradient(${lightConfig.angle + 180}deg, rgba(255,245,210,0.6) 0%, transparent 65%)`
+                background: `linear-gradient(${lightConfig.angle + 180}deg, rgba(255,245,210,0.3) 0%, transparent 65%)`
               }}
             />
           )}
@@ -130,7 +143,7 @@ export default function RetroCrtCard({
           <div
             className="absolute inset-0 rounded-[2rem] pointer-events-none z-10"
             style={{
-              boxShadow: 'inset 0 0 50px rgba(0,0,0,0.85), inset 0 0 15px rgba(0,0,0,0.95)'
+              boxShadow: 'inset 0 0 50px rgba(0,0,0,0.88), inset 0 0 15px rgba(0,0,0,0.95)'
             }}
           />
         </div>
