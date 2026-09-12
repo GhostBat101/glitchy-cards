@@ -1,5 +1,5 @@
 /**
- * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card with credit-card thickness extrusion, high-gloss glass canopy texture, and ray-traced shadows.
+ * CyberpunkHudCard - 3:4 portrait cockpit HUD specimen card with multi-layer high-gloss canopy glass, specular glare, and ray-traced reflections.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useState, useEffect, useRef } from 'react';
@@ -134,37 +134,36 @@ export default function CyberpunkHudCard({
 
         <div
           style={{ transform: 'translateZ(4px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_1px_2px_rgba(0,246,255,0.4),_inset_0_-1px_2px_rgba(0,0,0,0.5)] border border-cyan-400/30"
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_2px_4px_rgba(255,255,255,0.85),_inset_2px_0_3px_rgba(0,246,255,0.6),_inset_0_-2px_4px_rgba(0,0,0,0.7)] border-2 border-white/40"
         >
           <img
             src="./assets/images/jet_hud_cockpit.png"
             alt=""
-            className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter saturate-[1.12]"
+            className="w-full h-full object-cover rounded-[2rem] pointer-events-none filter saturate-[1.18] contrast-[1.05]"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none rounded-[2rem]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/25 pointer-events-none rounded-[2rem]" />
 
-          <div className="absolute inset-0 rounded-[2rem] hud-gloss-canopy pointer-events-none opacity-65 z-10" />
+          <div className="absolute inset-0 rounded-[2rem] hud-gloss-canopy pointer-events-none opacity-85 z-10" />
 
-          <div
-            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-45 mix-blend-screen transition-all duration-300"
-            style={{
-              background: 'radial-gradient(circle at var(--gloss-x, 50%) var(--gloss-y, 50%), rgba(255,255,255,0.85) 0%, rgba(0,246,255,0.2) 35%, transparent 65%)'
-            }}
-          />
+          <div className="absolute inset-0 rounded-[2rem] hud-specular-glare pointer-events-none opacity-80 z-10 transition-all duration-300" />
 
-          <div
-            className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 opacity-35 mix-blend-overlay"
-            style={{
-              background: 'linear-gradient(125deg, rgba(255,255,255,0.7) 0%, transparent 40%, rgba(255,255,255,0.25) 55%, transparent 70%)'
-            }}
-          />
+          <div className="absolute inset-0 rounded-[2rem] hud-glass-sheen pointer-events-none opacity-60 z-10" />
 
           {lightConfig && (
             <div
-              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-40 transition-all duration-500"
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 mix-blend-screen opacity-80 transition-all duration-500"
               style={{
-                background: `linear-gradient(${lightConfig.angle}deg, rgba(0, 246, 255, 0.5) 0%, rgba(57, 255, 20, 0.15) 35%, transparent 70%)`
+                background: `linear-gradient(${lightConfig.angle}deg, rgba(255, 255, 255, 0.85) 0%, rgba(0, 246, 255, 0.6) 25%, rgba(57, 255, 20, 0.2) 45%, transparent 75%)`
+              }}
+            />
+          )}
+
+          {lightConfig && (
+            <div
+              className="absolute inset-0 rounded-[2rem] pointer-events-none z-10 transition-all duration-500"
+              style={{
+                boxShadow: `inset ${-lightConfig.x * 6}px ${-lightConfig.y * 6}px 18px rgba(255, 255, 255, 0.75)`
               }}
             />
           )}
@@ -172,8 +171,10 @@ export default function CyberpunkHudCard({
 
         <div
           style={{ transform: 'translateZ(40px)' }}
-          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-laser-cyan/35 shadow-[inset_0_0_35px_rgba(0,246,255,0.25)]"
-        />
+          className="absolute inset-0 rounded-[2rem] pointer-events-none border border-white/50 shadow-[inset_0_0_35px_rgba(0,246,255,0.35),_0_0_20px_rgba(0,246,255,0.3)] overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-white/40 pointer-events-none mix-blend-screen" />
+        </div>
 
         <div
           style={{ transform: 'translateZ(65px)' }}
