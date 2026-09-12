@@ -1,5 +1,5 @@
 /**
- * AiCoreCdCard - 3:4 portrait optical specimen card featuring ray-traced anisotropic rainbow diffraction, directional cast shadow, and PBR lighting.
+ * AiCoreCdCard - 3:4 portrait credit-card specimen with physical edge thickness, ray-traced anisotropic diffraction, and directional cast shadows.
  * Communicates with: src/App.jsx (receives globalMousePos, isGlitching, and lightConfig).
  */
 import React, { useEffect, useRef } from 'react';
@@ -104,8 +104,28 @@ export default function AiCoreCdCard({
         className="relative w-full h-full rounded-[2rem] overflow-visible transition-shadow duration-500"
       >
         <div
+          style={{ transform: 'translateZ(-4px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#1a1a1a] border border-black/60"
+        />
+
+        <div
+          style={{ transform: 'translateZ(-2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#222222] border border-neutral-700/50"
+        />
+
+        <div
           style={{ transform: 'translateZ(0px)' }}
-          className="relative w-full h-full rounded-[2rem] overflow-hidden"
+          className="absolute inset-0 rounded-[2rem] bg-[#2a2a2a] border border-neutral-500/40"
+        />
+
+        <div
+          style={{ transform: 'translateZ(2px)' }}
+          className="absolute inset-0 rounded-[2rem] bg-[#1f1f1f] border border-neutral-400/30"
+        />
+
+        <div
+          style={{ transform: 'translateZ(4px)' }}
+          className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),_inset_0_-1px_2px_rgba(0,0,0,0.5)] border border-white/20"
         >
           <img
             src="./assets/images/dvd_jurassic_hand.png"
